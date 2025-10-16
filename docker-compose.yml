@@ -1,0 +1,68 @@
+version: "3.8"
+services:
+    laravel-app:
+        build:
+            context: .
+        image: laravel-app
+        container_name: laravel-app
+        ports:
+            - "8000:80"
+        volumes:
+            - ./app:/var/www/app
+            - ./bootstrap:/var/www/bootstrap
+            - ./config:/var/www/config
+            - ./database:/var/www/database
+            - ./public:/var/www/public
+            - ./resources:/var/www/resources
+            - ./routes:/var/www/routes
+            - ./storage:/var/www/storage
+            - ./.env:/var/www/.env
+            - ./storage/framework/sessions:/var/www/storage/framework/sessions
+            - ./storage/app/public:/var/www/storage/app/public
+            - ./storage/app/public/products:/var/www/storage/app/public/products
+            - ./storage/app/public/avatars:/var/www/storage/app/public/avatars
+        env_file:
+            - .env # Docker tự load biến môi trường từ .env
+        depends_on:
+            - mysql-db
+        networks:
+            - laravel
+        command: sh -c "php artisan config:clear && php artisan cache:clear && php artisan config:cache && php artisan serve --host=0.0.0.0 --port=80"
+
+    mysql-db:
+        image: mysql:5.7
+        container_name: mysql-db
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: fruitshop
+            MYSQL_ALLOW_EMPTY_PASSWORD: "yes" # Đảm bảo không sử dụng mật khẩu
+        ports:
+            - "3308:3306"
+        volumes:
+            - mysql_data:/var/lib/mysql
+            - ./initdb:/docker-entrypoint-initdb.d # ← THÊM DÒNG NÀY
+        networks:
+            - laravel
+
+    redis:
+        image: redis
+        container_name: redis
+        ports:
+            - "6379:6379"
+        networks:
+            - laravel
+
+    mailpit:
+        image: axllent/mailpit
+        container_name: mailpit
+        ports:
+            - "8025:8025"
+        networks:
+            - laravel
+
+volumes:
+    mysql_data:
+
+networks:
+    laravel:
+        driver: bridge
