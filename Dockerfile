@@ -30,5 +30,8 @@ RUN chown -R www-data:www-data /var/www \
 # Mở cổng 80
 EXPOSE 80
 
+# Chạy migrate khi container khởi động
+RUN php artisan config:cache && php artisan route:cache
+
 # Chạy Supervisor để giữ container sống
 CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
