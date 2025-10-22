@@ -1,33 +1,25 @@
 FROM php:8.0-fpm
 
-# Cài extension PHP và các tool cần thiết
-RUN apt-get update && apt-get install -y \
-    libpng-dev libonig-dev libxml2-dev zip unzip git curl \
+# Cài Nginx và các thư viện PHP cần thiết
+RUN apt-get update && apt-get install -y nginx libpng-dev libonig-dev libxml2-dev zip unzip git curl \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Cài Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Đặt thư mục làm việc
+# Sao chép mã nguồn
 WORKDIR /var/www
-
-# Copy mã nguồn Laravel vào container
 COPY . .
 
-# Cài các dependency Laravel
-RUN composer install --no-interaction --prefer-dist --optimize-autoloader
+# Cài Composer và Laravel dependencies
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN composer install --no-interaction --prefer-dist
 
-# Tạo file .env từ .env.example (nếu có)
-RUN cp .env.example .env || true
+# Copy file cấu hình Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Tạo key cho Laravel (Render sẽ có APP_KEY trong env, nhưng phòng khi thiếu)
-RUN php artisan key:generate || true
+# Phân quyền
+RUN chown -R www-data:www-data /var/www && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
-# Set quyền cho Laravel
-RUN chown -R www-data:www-data /var/www \
-    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
-
-# Expose cổng 80 (Laravel chạy qua php-fpm)
+# Mở cổng web
 EXPOSE 80
 
-CMD ["php-fpm"]
+# Chạy cả Nginx và PHP-FPM
+CMD service nginx start && php-fpm
