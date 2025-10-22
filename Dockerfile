@@ -1,9 +1,9 @@
 FROM php:8.2-fpm
 
-# Cài Nginx và các thư viện PHP cần thiết
+# Cài Nginx và các thư viện PHP cần thiết (bao gồm PostgreSQL)
 RUN apt-get update && apt-get install -y \
-    nginx libpng-dev libonig-dev libxml2-dev zip unzip git curl supervisor \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+    nginx libpng-dev libonig-dev libxml2-dev zip unzip git curl supervisor libpq-dev \
+    && docker-php-ext-install pdo pdo_mysql pdo_pgsql mbstring exif pcntl bcmath gd
 
 # Sao chép mã nguồn Laravel vào container
 WORKDIR /var/www
