@@ -10,6 +10,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\DiscountController;
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -135,3 +136,13 @@ Route::post('/review/delete/{id}', [ProductController::class, 'postDeleteComment
 Route::get('/user-profile', [HomePageController::class, 'getUserProfile']);
 
 Route::post('/update-user-in-profile', [HomePageController::class, 'postUpdateProfile']);
+
+//Migrate link (only for dev environment)
+Route::get('/run-migrate', function () {
+    try {
+        Artisan::call('migrate', ['--force' => true]);
+        return nl2br(Artisan::output());
+    } catch (\Exception $e) {
+        return '❌ Lỗi: ' . $e->getMessage();
+    }
+});
