@@ -144,20 +144,6 @@ php artisan config:clear
 
 ---
 
-## 🔐 Ghi chú Git & bảo mật
-- Không commit: `.env`, `vendor/`, `storage/logs/`, `bootstrap/cache/`.
-- Nếu thấy file/shortcut `public/storage` 0KB do Windows, xoá và chạy lại `php artisan storage:link`.
-
----
-
-## 👥 Thêm cộng tác viên (Collaborators)
-1) Mở: `https://github.com/HiepHuynhPham/thuongmaidientu/settings/access`
-2) `Add people` → nhập username → chọn quyền:
-   - `Triage` (review/issue) hoặc `Write` (push/tạo PR).
-3) Khuyến nghị bảo vệ nhánh `main`: `Settings` → `Branches` → `Add rule` → bật yêu cầu PR/approval/CI trước khi merge.
-
----
-
 ## 🆘 Hỗ trợ
 - Nếu gặp lỗi thanh toán VNPay, kiểm tra `storage/logs/laravel.log` với `VNPAY_DEBUG=true`.
 - Cần hướng dẫn cấu hình chi tiết, liên hệ qua issues của repo.
