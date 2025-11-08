@@ -1,112 +1,163 @@
-# Laravel Project - Chạy bằng Docker không cần cài đặt gì thêm
+# Fruit Shop Laravel – Hướng dẫn chạy và thanh toán
 
 ## 🔰 Giới thiệu
 
-Dự án Laravel này được cấu hình sẵn bằng Docker. Bạn **KHÔNG CẦN CÀI** bất kỳ công cụ nào như:
-- XAMPP
-- MySQL
-- PHP
-- Laravel
+Dự án thương mại điện tử (Laravel) với các tính năng chính:
+- Quản lý sản phẩm, giỏ hàng, đặt hàng, lịch sử đơn hàng.
+- Xác thực: đăng nhập thường và Google.
+- Thanh toán: VNPay (sandbox/UAT) và PayPal (sandbox). 
+- Hỗ trợ chạy bằng Docker hoặc cục bộ.
 
-Toàn bộ đã được đóng gói, chỉ cần cài **Docker Desktop**, giải nén mã nguồn và làm theo hướng dẫn bên dưới là có thể chạy được.
-
----
-
-## ✅ Yêu cầu duy nhất
-
-### 1. Cài đặt Docker Desktop
-- Tải và cài đặt Docker tại:  
-  👉 [https://docs.docker.com/desktop/setup/install/windows-install](https://docs.docker.com/desktop/setup/install/windows-install)
-- Sau khi cài đặt xong, **khởi động lại máy tính** để đảm bảo Docker hoạt động tốt.
+Repo GitHub: `https://github.com/HiepHuynhPham/thuongmaidientu`
 
 ---
 
-## 📦 Các bước chạy dự án
-
-### 2. Giải nén mã nguồn
-
-Giải nén file source code vào một thư mục bất kỳ.
+## ✅ Yêu cầu hệ thống
+- Docker Desktop (khuyến nghị), hoặc
+- Chạy cục bộ: `PHP 8.x`, `Composer`, `Node.js` (với `npm`), MySQL.
 
 ---
 
-### 3. Xóa file `storage` lỗi
+## 🐳 Chạy bằng Docker
 
-- Mở thư mục `myproject/public`
-- Xóa file `storage` (thường là một shortcut 0KB)
-![hình ảnh file](https://github.com/dung11122005/IMG_TEST/blob/master/README%20PHP/forder.png)
----
+1) Cài Docker Desktop:  
+   👉 https://docs.docker.com/desktop/setup/install/windows-install
 
-### 4. Tạo symbolic link
+2) Build và chạy:
+```bash
+docker compose up --build
+# hoặc nếu đã build trước đó
+docker-compose down -v && docker-compose build --no-cache && docker-compose up -d
+```
 
-Mở Terminal hoặc CMD ngay tại thư mục gốc chứa project (chứa file `docker-compose.yml`) và chạy:
+3) Truy cập ứng dụng:
+- `http://localhost:8000` – giao diện người dùng
+- `http://localhost:8000/admin` – trang quản trị
+- Mailpit UI (nếu dùng gửi mail dev): `http://localhost:8025`
 
+4) Storage symlink (nếu thiếu link `public/storage`):
 ```bash
 docker exec -u root -it laravel-app php artisan storage:link
 ```
 
-## 5. 🐳 Build và khởi động Docker
+5) Cấu hình DB trong `.env` (với Docker):
+- `DB_CONNECTION=mysql`
+- `DB_HOST=mysql-db`
+- `DB_PORT=3306`
+- `DB_DATABASE=fruitshop`
+- `DB_USERNAME=root`
+- `DB_PASSWORD=` (để trống – theo `docker-compose.yml`)
 
-### ⏱ Nếu bạn **chưa từng build** lần nào, chạy lệnh:
+Init dữ liệu: container MySQL sẽ tự import các file trong `initdb/`. Nếu cần, có thể chạy lại migrations/seeds từ ứng dụng.
 
+---
+
+## 💻 Chạy cục bộ (không dùng Docker)
 ```bash
-docker compose up --build
+composer install
+cp .env.example .env
+php artisan key:generate
+# Cập nhật biến DB_* theo MySQL cục bộ của bạn
+php artisan migrate --seed
+npm install
+npm run dev
+php artisan serve --port 8000
 ```
 
-### ⏱ Nếu bạn **đã build** thì chạy lệnh:
+---
 
+## 🔧 Biến môi trường quan trọng (.env)
+
+### 1) Ứng dụng
+- `APP_URL` (ví dụ: `http://localhost:8000`)
+- `APP_KEY` (tạo bằng `php artisan key:generate`)
+
+### 2) VNPay (Sandbox/UAT)
+- `VNPAY_ENDPOINT` (mặc định: `https://sandbox.vnpayment.vn/paymentv2/vpcpay.html`)
+- `VNPAY_TMN_CODE`
+- `VNPAY_HASH_SECRET`
+- `VNPAY_RETURN_URL` (ví dụ khi test qua Cloudflare Tunnel: `https://<random>.trycloudflare.com/thank`)
+- `VNPAY_VERSION` (mặc định: `2.1.0`), `VNPAY_LOCALE` (`vn` hoặc `en`), `VNPAY_CURRENCY` (`VND`)
+- `VNPAY_DEBUG` (true/false – ghi log params gửi đi)
+
+### 3) PayPal (Sandbox)
+- `PAYPAL_MODE=sandbox`
+- `PAYPAL_SANDBOX_CLIENT_ID` hoặc `PAYPAL_CLIENT_ID`
+- `PAYPAL_SANDBOX_CLIENT_SECRET` hoặc `PAYPAL_SECRET`
+- Tuỳ chọn: `PAYPAL_PAYMENT_ACTION` (mặc định `Sale`), `PAYPAL_CURRENCY` (mặc định `USD`), `PAYPAL_NOTIFY_URL`, `PAYPAL_LOCALE`, `PAYPAL_VALIDATE_SSL`
+
+Xem thêm trong `config/paypal.php` để biết biến nào được dùng khi `sandbox`/`live`.
+
+---
+
+## 🧭 Luồng checkout và các route chính
+- `GET /checkout` – trang xác nhận giỏ hàng.
+- `POST /confirm-checkout` – xác nhận và chuẩn bị đặt hàng.
+- `POST /place-order` – tạo đơn hàng.
+- `GET /thank` – trang trả về sau VNPay (return URL).
+
+### VNPay
+- Ứng dụng tạo URL thanh toán từ `App\Services\VnPayService` (dùng các biến `VNPAY_*`).
+- Khi người dùng thanh toán xong, VNPay gọi về `VNPAY_RETURN_URL` (mặc định trỏ tới route `thank`).
+
+### PayPal
+- Trang tích hợp JS SDK: `GET /paypal/checkout`.
+- Endpoints SDK: `POST /paypal/orders/create`, `POST /paypal/orders/capture`.
+- Luồng redirect server-side: `POST /payment/redirect-paypal` → `GET /payment/paypal-return` / `GET /payment/paypal-cancel`.
+
+---
+
+## 🌐 Test VNPay qua Cloudflare Tunnel (sửa lỗi 72 – Không tìm thấy website)
+1) Cài `cloudflared`:  
+   👉 https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+2) Chạy tunnel trỏ về ứng dụng local:
 ```bash
-docker-compose down -v
-docker-compose build --no-cache
-docker-compose up -d
+cloudflared tunnel --url http://localhost:8000
 ```
+3) Sao chép URL ngẫu nhiên (ví dụ: `https://procurement-ratings-trackbacks-tradition.trycloudflare.com`).
+4) Cập nhật `.env`:
+```env
+VNPAY_RETURN_URL=https://<random>.trycloudflare.com/thank
+```
+5) Xoá cache cấu hình:
+```bash
+php artisan config:clear
+```
+6) Kiểm thử lại thanh toán VNPay từ `https://<random>.trycloudflare.com/checkout` (lưu ý dùng HTTPS).
 
-## 6. Mở Docker Desktop
-
-1. Mở ứng dụng **Docker Desktop**
-2. Vào tab **Containers**
-3. Tìm container tên **`myproject`** (hoặc tên bạn đặt trong `docker-compose.yml`)
-![khi build docker thành công](https://github.com/dung11122005/IMG_TEST/blob/master/README%20PHP/docker1.png)
-4. Nhấn **Start** (nếu container chưa chạy)
-5. Chờ vài giây, sau đó mở trình duyệt để truy cập:
-
-| Đường dẫn                       | Mục đích              |
-|--------------------------------|------------------------|
-| [http://localhost:8000](http://localhost:8000)       | Giao diện người dùng     |
-| [http://localhost:8000/admin](http://localhost:8000/admin) | Trang quản trị admin     |
+### Khắc phục 419 Page Expired
+- Dùng đúng giao thức HTTPS khi truy cập qua Cloudflare Tunnel.
+- Đã thêm ngoại lệ CSRF cho `POST /confirm-checkout` để tránh lỗi khi proxy qua domain khác.
+- Nếu cần, kiểm tra cookies/session khi chạy sau reverse proxy.
 
 ---
 
 ## 👤 Tài khoản đăng nhập test
 
-| Role  | Email            | Mật khẩu |
-|-------|------------------|----------|
-| Admin | admin@gmail.com  | 123456   |
-| User  | user@gmail.com   | 123456   |
-| User  | test@gmail.com   | 123456   |
+| Role  | Email           | Mật khẩu |
+|-------|-----------------|----------|
+| Admin | admin@gmail.com | 123456   |
+| User  | user@gmail.com  | 123456   |
+| User  | test@gmail.com  | 123456   |
 
-## Đăng nhập bằng Google
-
-Hệ thống hỗ trợ đăng nhập bằng Google.  
-Chỉ cần bấm **"Đăng nhập bằng Google"** trên giao diện.
+Đăng nhập bằng Google: bấm **"Đăng nhập bằng Google"** trên giao diện.
 
 ---
 
-## 💰 Thanh toán bằng MoMo (Môi trường test - UAT)
-
-### Bước 1: Tải App MoMo UAT
-
-👉 Tải tại: [https://developers.momo.vn/v3/vi/download](https://developers.momo.vn/v3/vi/download)
-
-> Nếu không quét được QR, mở link bằng điện thoại để tải trực tiếp app.
-
-### Bước 2: Hướng dẫn sử dụng MoMo test
-
-Chi tiết hướng dẫn sử dụng, nạp tiền, tạo tài khoản test tại:  
-👉 [https://developers.momo.vn/v3/vi/docs/payment/onboarding/test-instructions](https://developers.momo.vn/v3/vi/docs/payment/onboarding/test-instructions)
+## 🔐 Ghi chú Git & bảo mật
+- Không commit: `.env`, `vendor/`, `storage/logs/`, `bootstrap/cache/`.
+- Nếu thấy file/shortcut `public/storage` 0KB do Windows, xoá và chạy lại `php artisan storage:link`.
 
 ---
 
-### ✅ Lưu ý trong môi trường test:
+## 👥 Thêm cộng tác viên (Collaborators)
+1) Mở: `https://github.com/HiepHuynhPham/thuongmaidientu/settings/access`
+2) `Add people` → nhập username → chọn quyền:
+   - `Triage` (review/issue) hoặc `Write` (push/tạo PR).
+3) Khuyến nghị bảo vệ nhánh `main`: `Settings` → `Branches` → `Add rule` → bật yêu cầu PR/approval/CI trước khi merge.
 
-- Mật khẩu, mã OTP, mã xác thực... đều là **toàn số 0**
-- Bạn có thể nạp tiền ảo để thử thanh toán
+---
+
+## 🆘 Hỗ trợ
+- Nếu gặp lỗi thanh toán VNPay, kiểm tra `storage/logs/laravel.log` với `VNPAY_DEBUG=true`.
+- Cần hướng dẫn cấu hình chi tiết, liên hệ qua issues của repo.
