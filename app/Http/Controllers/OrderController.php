@@ -94,36 +94,26 @@ class OrderController extends Controller
         ]), $cartData['cartDetails']);
 
         if ($order) {
-        // Thanh toán MOMO
-        if ($data['paymentMethod'] === 'MOMO') {
+        // Thanh toán VNPAY
+        if ($data['paymentMethod'] === 'VNPAY') {
             $time = strval(time());
-            $orderId = "MOMO" . $time;
-            $orderInfo = "Payment for order " . $orderId;
-            $amount = strval($cartData['totalPrice']);
-            $requestId = "MOMO" . $time . "001";
+            $vnOrderId = 'VNPAY' . $time;
+            $vnOrderInfo = 'Payment for order #' . $order->id;
+            $amount = (int) $cartData['totalPrice'];
 
-            // Tạo yêu cầu thanh toán MOMO
-            $paymentRequest = [
+            $vnPay = new \App\Services\VnPayService();
+            $paymentUrl = $vnPay->generatePaymentUrl([
                 'amount' => $amount,
-                'orderId' => $orderId,
-                'orderInfo' => $orderInfo,
-                'requestId' => $requestId,
-                'extraData' => strval($order->id),  // Gắn ID đơn hàng vào extraData
-            ];
+                'orderId' => $vnOrderId,
+                'orderInfo' => $vnOrderInfo,
+                'ipAddr' => $request->ip(),
+                // Gán mặc định NCB để test nhanh theo hướng dẫn
+                'bankCode' => 'NCB',
+            ]);
 
-            // Gửi yêu cầu thanh toán đến MOMO
-            $response = $this->paymentService->createPayment($paymentRequest);
-            $jsonResponse = json_decode($response, true);
-
-            // Lấy URL thanh toán
-            $paymentUrl = $jsonResponse['payUrl'] ?? '';
-
-            if (!empty($paymentUrl)) {
-                // Lưu orderId và requestId vào session để kiểm tra sau
-                Session::put('momoOrderId', $orderId);
-                Session::put('momoRequestId', $requestId);
-                return redirect($paymentUrl);
-            }
+            // Lưu thông tin để xử lý sau khi quay về từ VNPAY
+            Session::put('vnp_pending_order_id', $order->id);
+            return redirect($paymentUrl);
         }
 
         return redirect()->route('thank')->with('success', 'Đặt hàng thành công!');
@@ -139,37 +129,30 @@ class OrderController extends Controller
         if ($resultCode !== null && intval($resultCode) !== 0) {
             return view('client.cart.failure');
         }
-        $orderId = $request->query('extraData');
-        // Kiểm tra trạng thái giao dịch qua session
-        $momoOrderId = Session::get('momoOrderId');
-        $momoRequestId = Session::get('momoRequestId');
-
-        if ($momoOrderId && $momoRequestId) {
-            // Gọi phương thức checkPaymentStatus để kiểm tra trạng thái giao dịch
-            $transactionStatus = $this->paymentService->queryTransactionStatus($momoOrderId, $momoRequestId);
-
-            // Kiểm tra nếu không có phản hồi hoặc phản hồi không phải là JSON hợp lệ
-            if (empty($transactionStatus)) {
-                return view('client.cart.failure')->with('error', 'Không nhận được phản hồi từ MoMo.');
+        // Handle VNPAY return
+        if ($request->query('vnp_ResponseCode') !== null) {
+            $vnPay = new \App\Services\VnPayService();
+            $isValid = $vnPay->validateReturn($request->query());
+            if (!$isValid) {
+                return view('client.cart.failure')->with('error', 'Không thể xác thực giao dịch VNPAY.');
             }
 
-            $jsonResponse = json_decode($transactionStatus, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                return view('client.cart.failure')->with('error', 'Phản hồi không hợp lệ từ MoMo.');
-            }
+            $respCode = $request->query('vnp_ResponseCode');
+            $orderIdInternal = Session::pull('vnp_pending_order_id');
 
-            $resultCodeFromApi = $jsonResponse['resultCode'] ?? -1;
-            if ($resultCodeFromApi === 0) {
-                $order = Order::where('id', $orderId)->first();
+            if ($respCode === '00' && $orderIdInternal) {
+                $order = Order::where('id', $orderIdInternal)->first();
                 if ($order) {
                     $order->update([
-                        'pay' => 1, // Cập nhật trạng thái thanh toán
+                        'pay' => 1,
+                        'order_status' => 'paid',
+                        'payment_method' => 'VNPAY',
                     ]);
                 }
                 return view('client.cart.thank');
-            } else {
-                return view('client.cart.failure')->with('error', 'Thanh toán thất bại. Vui lòng thử lại.');
             }
+
+            return view('client.cart.failure')->with('error', 'Thanh toán VNPAY thất bại hoặc đã hủy.');
         }
 
         return view('client.cart.thank');

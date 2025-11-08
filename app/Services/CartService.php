@@ -120,10 +120,17 @@ class CartService
 
 
 
+        // Lấy các sản phẩm đã được chọn (checkbox != 0)
         $cartDetails = $cart->cartDetails->filter(function ($cd) {
             return $cd->cartDetails_checkbox != 0;
         });
 
+        // Nếu chưa có sản phẩm nào được chọn, lấy toàn bộ sản phẩm trong giỏ hàng
+        if ($cartDetails->isEmpty()) {
+            $cartDetails = $cart->cartDetails;
+        }
+
+        // Tính tổng tiền
         $totalPrice = $cartDetails->sum(function ($cd) {
             return $cd->product->product_price * $cd->cartDetails_quantity;
         });

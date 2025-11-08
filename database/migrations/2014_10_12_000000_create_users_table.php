@@ -103,22 +103,7 @@ return new class extends Migration
             $table->decimal('price', 10, 2);
         });
 
-        // Cart Table
-        Schema::create('carts', function (Blueprint $table) {
-            $table->id();
-            $table->integer('cart_sum')->nullable();
-            $table->foreignId('user_id')->constrained('users');
-            $table->timestamps();
-        });
-
-        // CartDetails Table
-        Schema::create('cart_details', function (Blueprint $table) {
-            $table->id();
-            $table->boolean('cartDetails_checkbox')->default(false);
-            $table->bigInteger('cartDetails_quantity');
-            $table->foreignId('product_id')->constrained('products');
-            $table->foreignId('cart_id')->constrained('cart');
-        });
+        // carts & cart_details are defined in dedicated 2025_* migrations
 
         // Reviews Table
         Schema::create('reviews', function (Blueprint $table) {
@@ -141,8 +126,7 @@ return new class extends Migration
     public function down()
     {
         Schema::dropIfExists('reviews');
-        Schema::dropIfExists('cart_details');
-        Schema::dropIfExists('cart');
+        // carts & cart_details are dropped by their dedicated 2025_* migrations
         Schema::dropIfExists('order_details');
         Schema::dropIfExists('shippings');
         Schema::dropIfExists('orders');

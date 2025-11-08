@@ -17,7 +17,7 @@ class Order extends Model
         'receiver_phone',
         'receiver_address',
         'receiver_name','payment_method',
-    'pay'];
+    'pay','paypal_order_id', 'status', 'payer_id', 'payer_email', 'amount', 'currency'];
 
     public function user()
     {

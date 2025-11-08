@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+use App\Http\Controllers\PayPalController;
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::post('/paypal/create-order', [PayPalController::class, 'createOrder'])->name('api.paypal.orders.create');
+Route::post('/paypal/capture-order', [PayPalController::class, 'captureOrder'])->name('api.paypal.orders.capture');
