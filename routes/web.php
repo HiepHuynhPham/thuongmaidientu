@@ -10,6 +10,8 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\DiscountController;
+use App\Http\Controllers\PayPalController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Artisan;
 
 /*
@@ -136,6 +138,23 @@ Route::post('/review/delete/{id}', [ProductController::class, 'postDeleteComment
 Route::get('/user-profile', [HomePageController::class, 'getUserProfile']);
 
 Route::post('/update-user-in-profile', [HomePageController::class, 'postUpdateProfile']);
+
+// PayPal checkout (JavaScript SDK flow)
+Route::get('/paypal/checkout', [PayPalController::class, 'checkout'])->name('paypal.checkout');
+
+Route::get('/payment/PaymentSuccess', [PayPalController::class, 'successTransaction'])->name('paypal.success');
+Route::get('/paypal/cancel', [PayPalController::class, 'cancelTransaction'])->name('paypal.cancel');
+// PayPal Orders API endpoints used by JS SDK on checkout page
+Route::post('/paypal/orders/create', [PayPalController::class, 'createOrder'])->name('paypal.orders.create');
+Route::post('/paypal/orders/capture', [PayPalController::class, 'captureOrder'])->name('paypal.orders.capture');
+// Aliases following the requested endpoint naming
+Route::post('/payment/create-paypal-order', [PayPalController::class, 'createOrder'])->name('payment.paypal.create');
+Route::post('/payment/capture-paypal-order', [PayPalController::class, 'captureOrder'])->name('payment.paypal.capture');
+// Server-side redirect flow (create order and redirect buyer to PayPal)
+Route::post('/payment/redirect-paypal', [PaymentController::class, 'redirectToPayPal'])->name('payment.redirect');
+Route::get('/payment/paypal-return', [PaymentController::class, 'handlePayPalReturn'])->name('payment.return');
+Route::get('/payment/paypal-cancel', [PaymentController::class, 'handlePayPalCancel'])->name('payment.cancel');
+Route::post('/payment/record-paypal', [PaymentController::class, 'recordPayPalTransaction'])->name('payment.record');
 
 //Migrate link (only for dev environment)
 Route::get('/run-migrate', function () {

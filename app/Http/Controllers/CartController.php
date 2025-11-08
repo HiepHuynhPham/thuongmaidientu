@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\CartService;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 class CartController extends Controller
 {
@@ -26,8 +27,11 @@ class CartController extends Controller
         }
 
         // Nếu đã đăng nhập, tiến hành thêm vào giỏ hàng
-        $this->cartService->handleAddProductToCart($email, $id, 1);
-        return redirect('/');
+        $quantity = (int) $request->input('quantity', 1);
+        if ($quantity < 1) { $quantity = 1; }
+        $this->cartService->handleAddProductToCart($email, $id, $quantity);
+        // Trả về trang trước đó để tránh chuyển về trang chủ
+        return redirect()->back()->with('success', 'Đã thêm sản phẩm vào giỏ hàng');
     }
 
     public function getCartPage(Request $request)
@@ -61,10 +65,22 @@ class CartController extends Controller
         // Gọi service để lấy thông tin giỏ hàng
         $cartData = $this->cartService->fetchCartByUser($userId);
 
+        // Lấy cấu hình PayPal (client id, currency) để nhúng JS SDK trực tiếp vào trang checkout
+        $config = config('paypal');
+        $mode = Str::lower($config['mode'] ?? 'sandbox');
+        $paypalClientId = $mode === 'live'
+            ? ($config['live']['client_id'] ?? '')
+            : ($config['sandbox']['client_id'] ?? '');
+        $paypalCurrency = $config['currency'] ?? 'USD';
+        $paypalLocale = $config['locale'] ?? 'en_US';
+
         // Truyền dữ liệu cho view
         return view('client.cart.checkout', [
             'cartDetails' => $cartData['cartDetails'],
             'totalPrice' => $cartData['totalPrice'],
+            'paypalClientId' => $paypalClientId,
+            'paypalCurrency' => $paypalCurrency,
+            'paypalLocale' => $paypalLocale,
         ]);
     }
 }

@@ -33,10 +33,10 @@ class DiscountService
 
     public function handleCreateProductDiscount($id, $discount_percent, $start_date, $end_date, $status){
 
-        $product = Product::findOrFail($id);
-
-        if(!$product){
-            dd( $product->id);
+        // Use find() and handle missing product gracefully
+        $product = Product::find($id);
+        if (!$product) {
+            // Product not found
             return false;
         }
         $existing = ProductDiscount::where('product_id', $product->id)->first();
@@ -49,8 +49,8 @@ class DiscountService
                 'end_date' => $end_date,
                 'status' => $status
             ]);
-        }else{
-            dd( null);
+        } else {
+            // Existing discount found, cannot create
             return false;
         }
         return true;
