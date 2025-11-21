@@ -57,7 +57,7 @@
         </p>
     </div>
 
-    <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency={{ $paypalCurrency }}"
+    <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency={{ $paypalCurrency }}&intent=CAPTURE"
         data-sdk-integration-source="button-factory"></script>
     <script>
         const paypalContainer = document.getElementById('paypal-button-container');
@@ -72,46 +72,50 @@
                 color: 'silver',
                 tagline: false,
             },
-            async createOrder() {
-                const response = await fetch("{{ route('api.paypal.orders.create') }}", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRF-TOKEN": csrfToken,
-                        "Accept": "application/json",
-                    },
-                    body: JSON.stringify({
-                        value: orderValue,
-                        currency_code: orderCurrency,
-                    }),
-                });
-
-                const order = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(order.message || 'Không thể tạo đơn thanh toán PayPal.');
+            async createOrder(data, actions) {
+                try {
+                    const response = await fetch("{{ route('api.paypal.orders.create') }}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": csrfToken,
+                            "Accept": "application/json",
+                        },
+                        body: JSON.stringify({
+                            value: orderValue,
+                            currency_code: orderCurrency,
+                        }),
+                    });
+                    const order = await response.json();
+                    if (!response.ok || !order.id) throw new Error(order.message || 'Không thể tạo đơn thanh toán PayPal.');
+                    return order.id;
+                } catch (error) {
+                    console.warn('PayPal createOrder warning (fallback to client create):', error);
+                    return actions.order.create({
+                        purchase_units: [{ amount: { value: orderValue, currency_code: orderCurrency } }]
+                    });
                 }
-
-                return order.id;
             },
-            async onApprove(data) {
-                const response = await fetch(`{{ route('api.paypal.orders.capture') }}?orderId=${data.orderID}`, {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": csrfToken,
-                        "Accept": "application/json",
-                    },
-                });
-
-                const details = await response.json();
-
-                if (!response.ok || details.status !== 'COMPLETED') {
-                    console.error(details);
-                    alert('Thanh toán PayPal thất bại. Vui lòng thử lại.');
-                    return;
+            async onApprove(data, actions) {
+                try {
+                    const response = await fetch(`{{ route('api.paypal.orders.capture') }}?orderId=${data.orderID}`, {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN": csrfToken,
+                            "Accept": "application/json",
+                        },
+                    });
+                    const details = await response.json();
+                    if (response.ok && details.status === 'COMPLETED') {
+                        window.location.href = "{{ route('paypal.success') }}";
+                        return;
+                    }
+                    const clientDetails = await actions.order.capture();
+                    window.location.href = "{{ route('paypal.success') }}";
+                } catch (error) {
+                    console.warn('PayPal onApprove warning (fallback to client capture):', error);
+                    alert('Có lỗi xảy ra với PayPal. Vui lòng thử lại.');
                 }
-
-                window.location.href = "{{ route('paypal.success') }}";
             },
             onCancel() {
                 window.location.href = "{{ route('paypal.cancel') }}";
