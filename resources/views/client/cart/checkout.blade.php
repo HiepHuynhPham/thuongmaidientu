@@ -19,7 +19,6 @@
 
     <!--Sử dụng thư viện jQuery Toast:-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-toast-plugin/1.3.2/jquery.toast.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-toast-plugin/1.3.2/jquery.toast.min.js"></script>
 
     <!-- Icon Font Stylesheet -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
@@ -263,6 +262,7 @@
 
     <!-- JavaScript Libraries -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-toast-plugin/1.3.2/jquery.toast.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('lib/easing/easing.min.js') }}"></script>
     <script src="{{ asset('lib/waypoints/waypoints.min.js') }}"></script>
@@ -290,18 +290,19 @@
 
     function togglePaymentActions() {
         if (paymentSelect.value === 'PAYPAL') {
+            checkoutForm.setAttribute('action', "{{ route('payment.redirect') }}");
+            checkoutForm.setAttribute('method', 'POST');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('disabled');
             if (typeof paypal !== 'undefined') {
                 paypalContainer.classList.remove('d-none');
-                submitBtn.disabled = true;
-                submitBtn.classList.add('disabled');
                 if (!paypalRendered) { renderPayPalButton(); paypalRendered = true; }
             } else {
                 paypalContainer.classList.add('d-none');
-                submitBtn.disabled = true; // Giữ disabled để tránh submit với phương thức PAYPAL khi chưa cấu hình
-                submitBtn.classList.add('disabled');
-                $.toast({ heading: 'Cấu hình thiếu', text: 'PayPal chưa được cấu hình (client-id). Vui lòng bổ sung để hiện nút thanh toán.', icon: 'warning', position: 'top-right' });
             }
         } else {
+            checkoutForm.setAttribute('action', "{{ route('placeOrder') }}");
+            checkoutForm.setAttribute('method', 'POST');
             paypalContainer.classList.add('d-none');
             submitBtn.disabled = false;
             submitBtn.classList.remove('disabled');
@@ -314,7 +315,7 @@
     function renderPayPalButton() {
         paypal.Buttons({
             style: { layout: 'vertical', color: 'gold', shape: 'pill', tagline: false },
-            async createOrder() {
+            async createOrder(data, actions) {
                 try {
                     const response = await fetch("{{ url('/payment/create-paypal-order') }}", {
                         method: "POST",
@@ -329,32 +330,42 @@
                         }),
                     });
                     const order = await response.json();
-                    if (!response.ok) throw new Error(order.message || 'Không thể tạo đơn thanh toán PayPal.');
+                    if (!response.ok || !order.id) throw new Error(order.message || 'Không thể tạo đơn thanh toán PayPal.');
                     return order.id;
                 } catch (error) {
-                    console.error('PayPal createOrder error:', error);
-                    $.toast({ heading: 'Lỗi', text: error.message, icon: 'error', position: 'top-right' });
-                    throw error;
+                    console.warn('PayPal createOrder warning (fallback to client create):', error);
+                    return actions.order.create({
+                        purchase_units: [{ amount: { value: totalPriceUSD, currency_code: "{{ $paypalCurrency ?? 'USD' }}" } }]
+                    });
                 }
             },
-            async onApprove(data) {
+            async onApprove(data, actions) {
                 try {
                     const captureResp = await fetch(`{{ url('/payment/capture-paypal-order') }}?orderId=${data.orderID}`, {
                         method: "POST",
                         headers: { "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
                     });
                     const details = await captureResp.json();
-                    if (!captureResp.ok || details.status !== 'COMPLETED') throw new Error('Thanh toán PayPal thất bại.');
-
-                    // Sau khi thanh toán thành công, chuyển hướng tới trang thành công
+                    if (captureResp.ok && details.status === 'COMPLETED') {
+                        window.location.href = "{{ route('paypal.success') }}";
+                        return;
+                    }
+                    const clientDetails = await actions.order.capture();
+                    const recordResp = await fetch("{{ route('payment.record') }}", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
+                        body: JSON.stringify({ orderID: clientDetails.id, status: clientDetails.status, details: clientDetails })
+                    });
+                    const recordJson = await recordResp.json();
+                    if (!recordResp.ok || !recordJson.success) throw new Error('Không thể ghi nhận giao dịch PayPal.');
                     window.location.href = "{{ route('paypal.success') }}";
                 } catch (error) {
-                    console.error('PayPal onApprove error:', error);
-                    $.toast({ heading: 'Lỗi', text: error.message, icon: 'error', position: 'top-right' });
+                    console.warn('PayPal onApprove warning (fallback to client capture):', error);
+                    alert(error.message || 'Có lỗi xảy ra với PayPal.');
                 }
             },
-            onCancel() { $.toast({ heading: 'Hủy giao dịch', text: 'Bạn đã hủy giao dịch PayPal.', icon: 'warning', position: 'top-right' }); },
-            onError(err) { console.error(err); $.toast({ heading: 'Lỗi', text: 'Có lỗi xảy ra với PayPal.', icon: 'error', position: 'top-right' }); }
+            onCancel() { alert('Bạn đã hủy giao dịch PayPal.'); },
+            onError(err) { console.warn(err); alert('Có lỗi xảy ra với PayPal.'); }
         }).render('#paypal-button-container');
     }
 });

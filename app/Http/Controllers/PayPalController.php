@@ -72,12 +72,19 @@ class PayPalController extends Controller
                     'value' => number_format($data['value'], 2, '.', ''),
                 ],
             ]],
+            'application_context' => [
+                'shipping_preference' => 'NO_SHIPPING',
+                'user_action' => 'PAY_NOW',
+                'return_url' => route('paypal.success'),
+                'cancel_url' => route('paypal.cancel'),
+            ],
         ]);
 
         if (!isset($response['id'])) {
             Log::error('PayPal createOrder failed', ['response' => $response]);
             return response()->json([
-                'message' => 'Unable to create PayPal order',
+                'message' => 'Không thể tạo đơn hàng PayPal',
+                'error' => $response,
             ], Response::HTTP_BAD_GATEWAY);
         }
 
