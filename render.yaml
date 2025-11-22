@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: thuongmaidientu
+    env: docker
+    plan: free
+    region: singapore
+    dockerfilePath: Dockerfile
+    dockerContext: .
+    postDeployCommand: |
+      php artisan config:clear
+      php artisan cache:clear

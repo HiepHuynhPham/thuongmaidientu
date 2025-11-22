@@ -74,10 +74,6 @@ return [
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
-            'sslmode' => 'require',
-            'options' => [
-                PDO::ATTR_TIMEOUT => 10,
-            ],
         ],
 
         'sqlsrv' => [
