@@ -66,14 +66,18 @@ return [
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DATABASE_URL'),
-            'host' => null,
-            'port' => null,
-            'database' => null,
-            'username' => null,
-            'password' => null,
+            'host' => env('DB_HOST', null),
+            'port' => env('DB_PORT', null),
+            'database' => env('DB_DATABASE', null),
+            'username' => env('DB_USERNAME', null),
+            'password' => env('DB_PASSWORD', null),
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
+            'sslmode' => 'require',
+            'options' => [
+                PDO::ATTR_TIMEOUT => 15,
+            ],
         ],
 
         'sqlsrv' => [
