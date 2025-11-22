@@ -1,11 +1,11 @@
 services:
   - type: web
     name: thuongmaidientu
-    env: docker
+    env: php
     plan: free
     region: singapore
-    dockerfilePath: Dockerfile
-    dockerContext: .
-    postDeployCommand: |
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
       php artisan config:clear
       php artisan cache:clear
+    startCommand: php artisan serve --host 0.0.0.0 --port 10000
