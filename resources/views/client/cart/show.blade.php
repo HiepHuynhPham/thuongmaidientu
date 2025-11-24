@@ -86,7 +86,7 @@
     </div>
     <!-- Spinner End -->
 
-    @extends('client.layout.header')
+    @include('client.layout.header')
 
 
 
@@ -259,7 +259,7 @@
 
 
 
-    @extends('client.layout.footer')
+    @include('client.layout.footer')
 
 
 

@@ -41,7 +41,7 @@
     <!-- Spinner End -->
 
 
-    @extends('client.layout.header')
+    @include('client.layout.header')
 
 
 
@@ -310,7 +310,7 @@
     <!-- Single Product End -->
 
 
-    @extends('client.layout.footer')
+    @include('client.layout.footer')
 
 
 

@@ -69,7 +69,7 @@
     <!-- Spinner End -->
 
 
-    @extends('client.layout.header')
+    @include('client.layout.header')
 
 
     <!-- Modal Search Start -->
@@ -359,7 +359,7 @@
     <!-- Fruits Shop End-->
 
 
-    @extends('client.layout.footer')
+    @include('client.layout.footer')
 
 
 

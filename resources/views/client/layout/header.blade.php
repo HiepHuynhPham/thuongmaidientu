@@ -1,5 +1,4 @@
-<body>
-    <!-- Navbar start -->
+<!-- Navbar start -->
     <div class="container-fluid fixed-top" style="z-index: 1050; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);">
         <div class="container topbar bg-primary d-none d-lg-block" style="padding: 5px 0; font-size: 13px;">
             <div class="d-flex justify-content-between">
@@ -100,4 +99,3 @@
         </div>
     </div>
     <!-- Navbar End -->
-</body>

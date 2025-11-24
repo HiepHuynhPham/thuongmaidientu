@@ -1,5 +1,4 @@
-<body>
-    <!-- Footer Start -->
+<!-- Footer Start -->
     <div class="container-fluid bg-dark text-white-50 footer pt3 mt-3">
         <div class="container">
             <div class="pb-4 mb-4" style="border-bottom: 1px solid rgba(226, 175, 24, 0.5) ;">
@@ -113,4 +112,3 @@
         if (btn) btn.style.display = 'inline-block';
     }
     </script>
-</body>
