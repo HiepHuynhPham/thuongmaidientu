@@ -297,7 +297,7 @@ window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
         if (window.paypal){ cb(); return; }
         if (paypalLoadRequested && paypalScriptEl){ paypalScriptEl.addEventListener('load', cb); return; }
         paypalScriptEl=document.createElement('script');
-        paypalScriptEl.src='https://www.paypal.com/sdk/js?client-id='+window.__PAYPAL_CLIENT_ID__+'&currency='+window.__PAYPAL_CURRENCY__+'&locale='+window.__PAYPAL_LOCALE__+'&intent=CAPTURE&components=buttons';
+        paypalScriptEl.src='https://www.paypal.com/sdk/js?client-id='+window.__PAYPAL_CLIENT_ID__+'&currency='+window.__PAYPAL_CURRENCY__+'&locale='+window.__PAYPAL_LOCALE__+'&components=buttons';
         paypalLoadRequested=true;
         paypalScriptEl.onload=cb;
         paypalScriptEl.onerror=function(){};
@@ -324,41 +324,13 @@ window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
     function renderPayPalButton() {
         paypal.Buttons({
             style: { layout: 'vertical', color: 'gold', shape: 'pill', tagline: false },
-            async createOrder(data, actions) {
-                try {
-                    const response = await fetch("{{ url('/payment/create-paypal-order') }}", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": csrfToken,
-                            "Accept": "application/json",
-                        },
-                        body: JSON.stringify({
-                            value: totalPriceUSD,
-                            currency_code: "{{ $paypalCurrency ?? 'USD' }}",
-                        }),
-                    });
-                    const order = await response.json();
-                    if (!response.ok || !order.id) throw new Error(order.message || 'Không thể tạo đơn thanh toán PayPal.');
-                    return order.id;
-                } catch (error) {
-                    console.warn('PayPal createOrder warning (fallback to client create):', error);
-                    return actions.order.create({
-                        purchase_units: [{ amount: { value: totalPriceUSD, currency_code: "{{ $paypalCurrency ?? 'USD' }}" } }]
-                    });
-                }
+            createOrder(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{ amount: { value: totalPriceUSD, currency_code: "{{ $paypalCurrency ?? 'USD' }}" } }]
+                });
             },
             async onApprove(data, actions) {
                 try {
-                    const captureResp = await fetch(`{{ url('/payment/capture-paypal-order') }}?orderId=${data.orderID}`, {
-                        method: "POST",
-                        headers: { "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
-                    });
-                    const details = await captureResp.json();
-                    if (captureResp.ok && details.status === 'COMPLETED') {
-                        window.location.href = "{{ route('paypal.success') }}";
-                        return;
-                    }
                     const clientDetails = await actions.order.capture();
                     const recordResp = await fetch("{{ route('payment.record') }}", {
                         method: "POST",
@@ -369,12 +341,11 @@ window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
                     if (!recordResp.ok || !recordJson.success) throw new Error('Không thể ghi nhận giao dịch PayPal.');
                     window.location.href = "{{ route('paypal.success') }}";
                 } catch (error) {
-                    console.warn('PayPal onApprove warning (fallback to client capture):', error);
                     alert(error.message || 'Có lỗi xảy ra với PayPal.');
                 }
             },
             onCancel() { alert('Bạn đã hủy giao dịch PayPal.'); },
-            onError(err) { console.warn(err); alert('Có lỗi xảy ra với PayPal.'); }
+            onError(err) { alert('Có lỗi xảy ra với PayPal.'); }
         }).render('#paypal-button-container');
     }
 });
