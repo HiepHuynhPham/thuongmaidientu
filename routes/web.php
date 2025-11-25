@@ -204,7 +204,7 @@ Route::get('/import-db', function () {
     foreach ($files as $file) {
         if (file_exists($file)) {
             try {
-                \DB::unprepared(file_get_contents($file));
+                DB::unprepared(file_get_contents($file));
                 $executed[] = basename($file);
             } catch (\Throwable $e) {
                 return response()->json(['ok' => false, 'file' => basename($file), 'error' => $e->getMessage()], 500);

@@ -2,13 +2,22 @@ services:
   - type: web
     name: thuongmaidientu
     env: docker
+    repo: https://github.com/HiepHuynhPham/thuongmaidientu
+    branch: main
     plan: free
     dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /healthz
     envVars:
       - key: APP_ENV
         value: production
+
   - type: worker
     name: thuongmaidientu-release
     env: docker
+    repo: https://github.com/HiepHuynhPham/thuongmaidientu
+    branch: main
+    plan: free
     dockerfilePath: ./Dockerfile
+    dockerContext: .
     startCommand: "php artisan migrate --force"

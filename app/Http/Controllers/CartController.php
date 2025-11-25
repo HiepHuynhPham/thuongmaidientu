@@ -36,14 +36,17 @@ class CartController extends Controller
 
     public function getCartPage(Request $request)
     {
-        // Lấy ID người dùng từ session
         $userId = $request->session()->get('user_id');
-
-        // Lấy thông tin giỏ hàng từ Service
-        $cartData = $this->cartService->getCartDetails($userId);
-
-        // Trả về view với dữ liệu giỏ hàng
-        return view('client.cart.show', $cartData);
+        try {
+            $cartData = $this->cartService->getCartDetails($userId);
+            return view('client.cart.show', $cartData);
+        } catch (\Throwable $e) {
+            return view('client.cart.show', [
+                'cartDetails' => [],
+                'totalPrice' => 0,
+                'cart' => null,
+            ])->with('error', 'Không thể tải giỏ hàng, vui lòng thử lại.');
+        }
     }
 
 
