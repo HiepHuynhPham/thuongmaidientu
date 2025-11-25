@@ -115,6 +115,9 @@ Route::get('/product', [ProductController::class, 'filterProducts'])->name('prod
 
 //Cart
 
+Route::get('/add-product-to-cart/{id}', function ($id) {
+    return redirect('/product/' . $id)->with('error', 'Đường dẫn không hợp lệ, vui lòng dùng nút Thêm vào giỏ hàng.');
+});
 Route::get('/cart', [CartController::class, 'getCartPage'])->name('cart.show');
 
 Route::post('/add-product-to-cart/{id}', [CartController::class, 'addProductToCart'])->name('cart.add');
@@ -263,4 +266,13 @@ Route::get('/debug-db', function () {
         $out['products_error'] = $e->getMessage();
     }
     return response()->json($out);
+});
+
+Route::get('/storage-link', function () {
+    try {
+        Artisan::call('storage:link');
+        return nl2br(Artisan::output());
+    } catch (\Throwable $e) {
+        return '❌ Lỗi: ' . $e->getMessage();
+    }
 });
