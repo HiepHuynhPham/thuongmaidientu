@@ -66,9 +66,9 @@
 
 @if(isset($paypalClientId) && !empty($paypalClientId))
 <script>
-window.__PAYPAL_CLIENT_ID__=@json($paypalClientId);
-window.__PAYPAL_CURRENCY__=@json($paypalCurrency ?? 'USD');
-window.__PAYPAL_LOCALE__=@json($paypalLocale ?? 'en_US');
+window.__PAYPAL_CLIENT_ID__="{{ $paypalClientId }}";
+window.__PAYPAL_CURRENCY__="{{ $paypalCurrency ?? 'USD' }}";
+window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
 </script>
 @endif
 
