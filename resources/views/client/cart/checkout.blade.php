@@ -348,6 +348,10 @@ window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
             onError(err) { alert('Có lỗi xảy ra với PayPal.'); }
         }).render('#paypal-button-container');
     }
+
+    checkoutForm.addEventListener('submit', function(e){
+        if (paymentSelect.value === 'PAYPAL') { e.preventDefault(); }
+    });
 });
 
     </script>

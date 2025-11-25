@@ -57,7 +57,7 @@
         </p>
     </div>
 
-    <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency={{ $paypalCurrency }}&intent=CAPTURE"
+    <script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency={{ $paypalCurrency }}&components=buttons"
         data-sdk-integration-source="button-factory"></script>
     <script>
         const paypalContainer = document.getElementById('paypal-button-container');
