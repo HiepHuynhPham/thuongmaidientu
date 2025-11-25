@@ -65,7 +65,8 @@
 </head>
 
 @if(isset($paypalClientId) && !empty($paypalClientId))
-<script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency={{ $paypalCurrency ?? 'USD' }}&locale={{ $paypalLocale ?? 'en_US' }}"></script>
+<script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency={{ $paypalCurrency ?? 'USD' }}&locale={{ $paypalLocale ?? 'en_US' }}&intent=CAPTURE&components=buttons"
+        data-sdk-integration-source="button-factory"></script>
 @endif
 
 <body>
