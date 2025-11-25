@@ -193,3 +193,22 @@ Route::get('/debug-assets', function () {
     }
     return response()->json($result);
 });
+
+Route::get('/import-db', function () {
+    $files = [
+        base_path('initdb/fruitshop.sql'),
+        base_path('initdb/products_seed.sql'),
+    ];
+    $executed = [];
+    foreach ($files as $file) {
+        if (file_exists($file)) {
+            try {
+                \DB::unprepared(file_get_contents($file));
+                $executed[] = basename($file);
+            } catch (\Throwable $e) {
+                return response()->json(['ok' => false, 'file' => basename($file), 'error' => $e->getMessage()], 500);
+            }
+        }
+    }
+    return response()->json(['ok' => true, 'executed' => $executed]);
+});
