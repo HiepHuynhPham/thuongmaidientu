@@ -114,19 +114,23 @@
 
     // Modal Video
     $(document).ready(function () {
-        var $videoSrc;
-        $('.btn-play').click(function () {
-            $videoSrc = $(this).data("src");
+        var $videoSrc = null;
+        $('.btn-play').on('click', function () {
+            $videoSrc = $(this).data('src') || null;
         });
-        console.log($videoSrc);
 
         $('#videoModal').on('shown.bs.modal', function (e) {
-            $("#video").attr('src', $videoSrc + "?autoplay=1&amp;modestbranding=1&amp;showinfo=0");
-        })
+            var srcFromTrigger = (e && e.relatedTarget) ? $(e.relatedTarget).data('src') : null;
+            var src = $videoSrc || srcFromTrigger || $('#video').attr('data-src') || $('#video').attr('src') || '';
+            if (src) {
+                $('#video').attr('src', src + "?autoplay=1&amp;modestbranding=1&amp;showinfo=0");
+            }
+        });
 
-        $('#videoModal').on('hide.bs.modal', function (e) {
-            $("#video").attr('src', $videoSrc);
-        })
+        $('#videoModal').on('hide.bs.modal', function () {
+            var src = $videoSrc || $('#video').attr('data-src') || '';
+            $('#video').attr('src', src);
+        });
     });
 
 
