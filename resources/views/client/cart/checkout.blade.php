@@ -234,20 +234,12 @@ window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
                             </div>
 
                             <!-- Xác Nhận Thanh Toán -->
-                                <div class="d-flex flex-column flex-sm-row gap-3 ms-4 mb-4">
-                                    <button id="place-order-btn"
-                                        class="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase">
-                                        Xác nhận thanh toán
-                                    </button>
-                                    <div id="paypal-button-container" class="d-none" style="width:100%; min-height:48px;"></div>
-                                    <form id="paypal-redirect" action="{{ route('payment.redirect') }}" method="POST" class="d-none" style="width:100%;">
-                                        @csrf
-                                        <input type="hidden" name="receiverName" id="paypalReceiverName">
-                                        <input type="hidden" name="receiverAddress" id="paypalReceiverAddress">
-                                        <input type="hidden" name="receiverPhone" id="paypalReceiverPhone">
-                                        <button type="submit" class="btn btn-warning border-0 rounded-pill px-4 py-3 text-dark w-100">Thanh toán qua PayPal (chuyển hướng)</button>
-                                    </form>
-                                </div>
+                            <div class="d-flex flex-column flex-sm-row gap-3 ms-4 mb-4">
+                                <button id="place-order-btn"
+                                    class="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase">
+                                    Xác nhận thanh toán
+                                </button>
+                                <div id="paypal-button-container" class="d-none" style="width:100%; min-height:48px;"></div>
                             </div>
                         </div>
                     </div>
@@ -317,12 +309,10 @@ window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
             submitBtn.classList.add('disabled');
             loadPayPalSDK(function(){
                 paypalContainer.classList.remove('d-none');
-                document.getElementById('paypal-redirect').classList.remove('d-none');
                 if (!paypalRendered) { renderPayPalButton(); paypalRendered = true; }
             });
         } else {
             paypalContainer.classList.add('d-none');
-            document.getElementById('paypal-redirect').classList.add('d-none');
             submitBtn.disabled = false;
             submitBtn.classList.remove('disabled');
         }
@@ -334,45 +324,28 @@ window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
     function renderPayPalButton() {
         paypal.Buttons({
             style: { layout: 'vertical', color: 'gold', shape: 'pill', tagline: false },
-            createOrder(data, actions) {
-                return actions.order.create({
-                    purchase_units: [{ amount: { value: totalPriceUSD, currency_code: "{{ $paypalCurrency ?? 'USD' }}" } }]
+            async createOrder() {
+                const response = await fetch("{{ url('/payment/create-paypal-order') }}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
+                    body: JSON.stringify({ value: totalPriceUSD, currency_code: "{{ $paypalCurrency ?? 'USD' }}" })
                 });
+                const order = await response.json();
+                return order.id;
             },
-            async onApprove(data, actions) {
-                try {
-                    const clientDetails = await actions.order.capture();
-                    const recordResp = await fetch("{{ route('payment.record') }}", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
-                        body: JSON.stringify({ orderID: clientDetails.id, status: clientDetails.status, details: clientDetails })
-                    });
-                    const recordJson = await recordResp.json();
-                    if (!recordResp.ok || !recordJson.success) throw new Error('Không thể ghi nhận giao dịch PayPal.');
-                    window.location.href = "{{ route('paypal.success') }}";
-                } catch (error) {
-                    alert(error.message || 'Có lỗi xảy ra với PayPal.');
-                }
+            async onApprove(data) {
+                const response = await fetch(`{{ url('/payment/capture-paypal-order') }}?orderId=${data.orderID}`, { method: "POST", headers: { "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" } });
+                const details = await response.json();
+                window.location.href = "{{ route('paypal.success') }}";
             },
-            onCancel() { alert('Bạn đã hủy giao dịch PayPal.'); },
-            onError(err) { alert('Có lỗi xảy ra với PayPal.'); }
+            onCancel() { window.location.assign("{{ route('paypal.cancel') }}"); },
+            onError() { alert('Có lỗi xảy ra với PayPal.'); }
         }).render('#paypal-button-container');
     }
 
     checkoutForm.addEventListener('submit', function(e){
         if (paymentSelect.value === 'PAYPAL') { e.preventDefault(); }
     });
-    const paypalRedirectForm = document.getElementById('paypal-redirect');
-    if (paypalRedirectForm){
-        paypalRedirectForm.addEventListener('submit', function(){
-            const rn = checkoutForm.querySelector('input[name="receiverName"]')?.value || '';
-            const ra = checkoutForm.querySelector('input[name="receiverAddress"]')?.value || '';
-            const rp = checkoutForm.querySelector('input[name="receiverPhone"]')?.value || '';
-            document.getElementById('paypalReceiverName').value = rn;
-            document.getElementById('paypalReceiverAddress').value = ra;
-            document.getElementById('paypalReceiverPhone').value = rp;
-        });
-    }
 });
 
     </script>
