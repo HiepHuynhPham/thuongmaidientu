@@ -172,3 +172,24 @@ Route::get('/clear-cache', function () {
     Artisan::call('config:cache');
     return 'Cache cleared!';
 });
+
+Route::get('/debug-assets', function () {
+    $paths = [
+        'css/style.css',
+        'css/bootstrap.min.css',
+        'css/bootstrap-login-form.min.css',
+        'lib/lightbox/css/lightbox.min.css',
+        'lib/owlcarousel/assets/owl.carousel.min.css',
+        'lib/easing/easing.min.js',
+        'lib/waypoints/waypoints.min.js',
+        'lib/lightbox/js/lightbox.min.js',
+        'lib/owlcarousel/owl.carousel.min.js',
+        'js/main.js',
+        'js/mdb.min.js',
+    ];
+    $result = [];
+    foreach ($paths as $p) {
+        $result[$p] = file_exists(public_path($p));
+    }
+    return response()->json($result);
+});
