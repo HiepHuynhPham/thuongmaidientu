@@ -1,9 +1,14 @@
 services:
   - type: web
     name: thuongmaidientu
-    env: php
+    env: docker
     plan: free
-    region: singapore
-    buildCommand: |
-      bash deploy.sh
-    startCommand: php -S 0.0.0.0:$PORT -t public public/index.php
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: APP_ENV
+        value: production
+  - type: worker
+    name: thuongmaidientu-release
+    env: docker
+    dockerfilePath: ./Dockerfile
+    startCommand: "php artisan migrate --force"
