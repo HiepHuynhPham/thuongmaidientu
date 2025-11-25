@@ -14,6 +14,7 @@ use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
 
 /*
 |--------------------------------------------------------------------------
@@ -235,4 +236,31 @@ Route::get('/seed-products', function () {
     ];
     foreach ($rows as $row) { \App\Models\Product::create($row); }
     return response()->json(['ok' => true, 'seeded' => count($rows)]);
+});
+
+Route::get('/debug-db', function () {
+    $out = [];
+    $out['env'] = [
+        'DB_CONNECTION' => env('DB_CONNECTION'),
+        'DB_HOST' => env('DB_HOST'),
+        'DB_PORT' => env('DB_PORT'),
+        'DB_DATABASE' => env('DB_DATABASE'),
+        'DB_USERNAME' => env('DB_USERNAME'),
+        'DB_SSLMODE' => env('DB_SSLMODE'),
+        'DATABASE_URL' => env('DATABASE_URL'),
+    ];
+    try {
+        $out['driver'] = DB::connection()->getDriverName();
+        $out['database'] = DB::connection()->getDatabaseName();
+        $out['version'] = DB::select('select version() as v')[0]->v ?? null;
+    } catch (\Throwable $e) {
+        $out['error'] = $e->getMessage();
+    }
+    try {
+        $out['has_products_table'] = Schema::hasTable('products');
+        $out['products_count'] = $out['has_products_table'] ? \App\Models\Product::count() : null;
+    } catch (\Throwable $e) {
+        $out['products_error'] = $e->getMessage();
+    }
+    return response()->json($out);
 });
