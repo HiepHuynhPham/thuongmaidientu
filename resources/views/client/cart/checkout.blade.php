@@ -65,8 +65,11 @@
 </head>
 
 @if(isset($paypalClientId) && !empty($paypalClientId))
-<script src="https://www.paypal.com/sdk/js?client-id={{ $paypalClientId }}&currency={{ $paypalCurrency ?? 'USD' }}&locale={{ $paypalLocale ?? 'en_US' }}&intent=CAPTURE&components=buttons"
-        data-sdk-integration-source="button-factory"></script>
+<script>
+window.__PAYPAL_CLIENT_ID__='{{ $paypalClientId }}';
+window.__PAYPAL_CURRENCY__='{{ $paypalCurrency ?? 'USD' }}';
+window.__PAYPAL_LOCALE__='{{ $paypalLocale ?? 'en_US' }}';
+</script>
 @endif
 
 <body>
@@ -289,18 +292,24 @@
     const totalPriceUSD = (totalPriceVND / 25000).toFixed(2);
     let paypalRendered = false;
 
+    function loadPayPalSDK(cb){
+        if (window.paypal){ cb(); return; }
+        var s=document.createElement('script');
+        s.src='https://www.paypal.com/sdk/js?client-id='+window.__PAYPAL_CLIENT_ID__+'&currency='+window.__PAYPAL_CURRENCY__+'&locale='+window.__PAYPAL_LOCALE__+'&intent=CAPTURE&components=buttons';
+        s.onload=cb;
+        s.onerror=function(){};
+        document.head.appendChild(s);
+    }
     function togglePaymentActions() {
         if (paymentSelect.value === 'PAYPAL') {
             checkoutForm.setAttribute('action', "{{ route('payment.redirect') }}");
             checkoutForm.setAttribute('method', 'POST');
             submitBtn.disabled = false;
             submitBtn.classList.remove('disabled');
-            if (typeof paypal !== 'undefined') {
+            loadPayPalSDK(function(){
                 paypalContainer.classList.remove('d-none');
                 if (!paypalRendered) { renderPayPalButton(); paypalRendered = true; }
-            } else {
-                paypalContainer.classList.add('d-none');
-            }
+            });
         } else {
             checkoutForm.setAttribute('action', "{{ route('placeOrder') }}");
             checkoutForm.setAttribute('method', 'POST');
