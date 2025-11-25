@@ -292,27 +292,26 @@ window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
     const totalPriceUSD = (totalPriceVND / 25000).toFixed(2);
     let paypalRendered = false;
 
+    var paypalScriptEl=null, paypalLoadRequested=false;
     function loadPayPalSDK(cb){
         if (window.paypal){ cb(); return; }
-        var s=document.createElement('script');
-        s.src='https://www.paypal.com/sdk/js?client-id='+window.__PAYPAL_CLIENT_ID__+'&currency='+window.__PAYPAL_CURRENCY__+'&locale='+window.__PAYPAL_LOCALE__+'&intent=CAPTURE&components=buttons';
-        s.onload=cb;
-        s.onerror=function(){};
-        document.head.appendChild(s);
+        if (paypalLoadRequested && paypalScriptEl){ paypalScriptEl.addEventListener('load', cb); return; }
+        paypalScriptEl=document.createElement('script');
+        paypalScriptEl.src='https://www.paypal.com/sdk/js?client-id='+window.__PAYPAL_CLIENT_ID__+'&currency='+window.__PAYPAL_CURRENCY__+'&locale='+window.__PAYPAL_LOCALE__+'&intent=CAPTURE&components=buttons';
+        paypalLoadRequested=true;
+        paypalScriptEl.onload=cb;
+        paypalScriptEl.onerror=function(){};
+        document.head.appendChild(paypalScriptEl);
     }
     function togglePaymentActions() {
         if (paymentSelect.value === 'PAYPAL') {
-            checkoutForm.setAttribute('action', "{{ route('payment.redirect') }}");
-            checkoutForm.setAttribute('method', 'POST');
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('disabled');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('disabled');
             loadPayPalSDK(function(){
                 paypalContainer.classList.remove('d-none');
                 if (!paypalRendered) { renderPayPalButton(); paypalRendered = true; }
             });
         } else {
-            checkoutForm.setAttribute('action', "{{ route('placeOrder') }}");
-            checkoutForm.setAttribute('method', 'POST');
             paypalContainer.classList.add('d-none');
             submitBtn.disabled = false;
             submitBtn.classList.remove('disabled');
