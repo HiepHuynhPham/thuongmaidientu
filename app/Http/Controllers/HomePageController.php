@@ -30,6 +30,11 @@ class HomePageController extends Controller{
         return view("client.auth.error");
     }
 
+    public function seoLandingPage()
+    {
+        return view('client.homePage.seo');
+    }
+
     public function getUserProfile(){
         $userId = session('user_id');
         $user = $this->userService->getUserById($userId);

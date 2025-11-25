@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -39,5 +40,10 @@ class Product extends Model
     public function cartDetails()
     {
         return $this->hasMany(CartDetail::class);
+    }
+
+    public function getSlugAttribute(): string
+    {
+        return Str::slug($this->product_name ?? '');
     }
 }

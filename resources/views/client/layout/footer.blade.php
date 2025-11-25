@@ -44,14 +44,24 @@
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
-                    <div class="d-flex flex-column text-start footer-item">
-                        <h4 class="text-light mb-3">Tài khoản</h4>
-                        <a class="btn-link" href="">Tài khoản của tôi</a>
-                        <a class="btn-link" href="">Chi tiết cửa hàng</a>
-                        <a class="btn-link" href="">Giỏ hàng</a>
-                        <a class="btn-link" href="">Danh sách mong muốn</a>
-                        <a class="btn-link" href="">Lịch sử đơn hàng</a>
-                        <a class="btn-link" href="">Đơn hàng quốc tế</a>
+                    <div class="footer-item">
+                        <h4 class="text-light mb-3">Nhận tin khuyến mãi</h4>
+                        <p>Đăng ký nhận ưu đãi và bài viết dinh dưỡng. Email sẽ được thêm vào danh sách Mailchimp.</p>
+                        <form class="mb-2" method="post" action="{{ route('newsletter.subscribe') }}">
+                            @csrf
+                            <div class="mb-2">
+                                <input type="email" name="email" class="form-control" required placeholder="you@example.com">
+                            </div>
+                            <div class="mb-2">
+                                <input type="text" name="name" class="form-control" placeholder="Tên của bạn (không bắt buộc)">
+                            </div>
+                            <button class="btn btn-primary w-100" type="submit">Đăng ký ngay</button>
+                        </form>
+                        @if(session('success'))
+                            <p class="text-success small mb-0">{{ session('success') }}</p>
+                        @elseif(session('error'))
+                            <p class="text-danger small mb-0">{{ session('error') }}</p>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -71,44 +81,45 @@
         </div>
     </div>
     <!-- Copyright End -->
-    <div id="chatbox" style="position: fixed; bottom: 20px; right: 20px; width: 300px; height: 380px; background: white; border-radius: 12px; box-shadow: 0 0 10px #aaa; display: none; flex-direction: column; z-index: 9999;">
-        <div style="padding:10px;font-weight:bold;background:#0099ff;color:white;display:flex;justify-content:space-between;align-items:center;">
-            <span>Live Chat Support</span>
-            <button onclick="closeChat()" style="background:transparent;border:none;color:white;font-size:18px;">▼</button>
-        </div>
-        <div id="chat-content" style="padding:10px;height:260px;overflow-y:auto;"></div>
-        <div style="display:flex;border-top:1px solid #ddd;">
-            <input id="chat-input" style="flex:1;padding:10px;border:none;" />
-            <button onclick="sendMsg()" style="padding:10px;background:#0099ff;color:white;border:none;">Gửi</button>
-        </div>
-    </div>
-    <button id="chat-open-btn" onclick="openChat()" style="position: fixed; bottom: 100px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background:#0099ff; color: white; border:none; font-size:22px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 9998;">
-        💬
-    </button>
+    <div id="fb-root"></div>
+    <div id="fb-customer-chat" class="fb-customerchat"></div>
     <script>
-    function openChat() {
-        var box = document.getElementById('chatbox');
-        var btn = document.getElementById('chat-open-btn');
-        if (!box) return;
-        box.style.display = 'flex';
-        if (btn) btn.style.display = 'none';
-    }
-    function sendMsg() {
-        var input = document.getElementById('chat-input');
-        var content = document.getElementById('chat-content');
-        if (!input || !content) return;
-        var text = (input.value || '').trim();
-        if (text === '') return;
-        content.innerHTML += '<div><b>Bạn:</b> ' + text.replace(/</g,'&lt;') + '</div>';
-        content.innerHTML += '<div><b>Bot:</b> Cảm ơn bạn! Chúng tôi sẽ hỗ trợ ngay.</div>';
-        input.value = '';
-        content.scrollTop = content.scrollHeight;
-    }
-    function closeChat() {
-        var box = document.getElementById('chatbox');
-        var btn = document.getElementById('chat-open-btn');
-        if (!box) return;
-        box.style.display = 'none';
-        if (btn) btn.style.display = 'inline-block';
-    }
+        const chatbox = document.getElementById('fb-customer-chat');
+        if (chatbox) {
+            chatbox.setAttribute("page_id", "{{ env('FACEBOOK_PAGE_ID', '100249304491708') }}");
+            chatbox.setAttribute("attribution", "biz_inbox");
+        }
+
+        window.fbAsyncInit = function() {
+            FB.init({
+                xfbml: true,
+                version: 'v18.0'
+            });
+        };
+
+        (function(d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) return;
+            js = d.createElement(s);
+            js.id = id;
+            js.src = "https://connect.facebook.net/vi_VN/sdk/xfbml.customerchat.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    </script>
+    <script type="text/javascript">
+    @php
+        $tawkProperty = env('TAWK_PROPERTY_ID');
+        $tawkWidget = env('TAWK_WIDGET_ID');
+    @endphp
+    @if($tawkProperty && $tawkWidget)
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/{{ env('TAWK_PROPERTY_ID') }}/{{ env('TAWK_WIDGET_ID') }}';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+    @endif
     </script>

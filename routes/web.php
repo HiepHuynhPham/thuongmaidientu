@@ -15,6 +15,9 @@ use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
+use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\SitemapController;
+use App\Models\Product;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +50,8 @@ Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallb
 //home
 
 Route::get('/', [HomePageController::class, 'getHomePage'])->name('home');
+
+Route::get('/seo/fruit-seo-guide', [HomePageController::class, 'seoLandingPage'])->name('seo.landing');
 
 Route::get('/error', [HomePageController::class, 'errorHomePage'])->name('error');
 
@@ -109,14 +114,28 @@ Route::middleware(['auth', 'role:1'])->group(function () {
 
 //product
 
-Route::get('/product/{id}', [ProductController::class, 'getProductDetailPage']);
+Route::get('/product/{slug}-{id}', [ProductController::class, 'getProductDetailPage'])->whereNumber('id')->name('product.detail');
+
+Route::get('/product/{id}', function ($id) {
+    $product = Product::find($id);
+    if (!$product) {
+        abort(404);
+    }
+
+    return redirect()->route('product.detail', ['slug' => $product->slug, 'id' => $product->id]);
+})->whereNumber('id');
 
 Route::get('/product', [ProductController::class, 'filterProducts'])->name('product');
 
 //Cart
 
 Route::get('/add-product-to-cart/{id}', function ($id) {
-    return redirect('/product/' . $id)->with('error', 'Đường dẫn không hợp lệ, vui lòng dùng nút Thêm vào giỏ hàng.');
+    $product = Product::find($id);
+    if (!$product) {
+        abort(404);
+    }
+
+    return redirect()->route('product.detail', ['slug' => $product->slug, 'id' => $product->id])->with('error', 'Đường dẫn không hợp lệ, vui lòng dùng nút Thêm vào giỏ hàng.');
 });
 Route::get('/cart', [CartController::class, 'getCartPage'])->name('cart.show');
 
@@ -137,6 +156,11 @@ Route::get('/order-history', [OrderController::class, 'getOrderHistory']);
 Route::post('/confirm-comment', [ProductController::class, 'postConfirmComment'])->name('comment.confirm');
 
 Route::post('/review/delete/{id}', [ProductController::class, 'postDeleteComment']);
+
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+Route::get('/newsletter/export', [NewsletterController::class, 'export'])->name('newsletter.export');
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 
 //profile
 

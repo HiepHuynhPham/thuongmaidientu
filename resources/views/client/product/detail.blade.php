@@ -1,12 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
     <meta charset="utf-8">
-    <title>Fruitables - Vegetable Website Template</title>
+    <title>{{ $product->product_name }} | Fruitables</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="" name="keywords">
-    <meta content="" name="description">
+    <meta name="description" content="{{ $product->product_shortDesc }}">
+    <meta name="keywords" content="trái cây tươi, {{ $product->product_name }}, mua trái cây online">
+    <meta property="og:type" content="product">
+    <meta property="og:title" content="{{ $product->product_name }} | Fruitables">
+    <meta property="og:description" content="{{ $product->product_shortDesc }}">
+    <meta property="og:url" content="{{ route('product.detail', ['slug' => $product->slug, 'id' => $product->id]) }}">
+    <meta property="og:image" content="{{ asset('storage/products/' . $product->product_image_url) }}">
+    <meta property="product:price:amount" content="{{ number_format($product->product_price, 0, '', '') }}">
+    <meta property="product:price:currency" content="VND">
+    <link rel="canonical" href="{{ route('product.detail', ['slug' => $product->slug, 'id' => $product->id]) }}">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -74,6 +82,14 @@
                             <h4 class="fw-bold mb-3">{{ $product->product_name }}</h4>
                             <p class="mb-3">{{ $product->product_shortDesc }}</p>
                             <h5 class="fw-bold mb-3">{{ number_format($product->product_price, 0, ',', '.') }} đ</h5>
+                            <div class="mb-3">
+                                <a class="btn btn-outline-primary btn-sm me-2" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('product.detail', ['slug' => $product->slug, 'id' => $product->id])) }}">
+                                    <i class="fab fa-facebook-f me-1"></i> Chia sẻ
+                                </a>
+                                <a class="btn btn-outline-secondary btn-sm" href="mailto:?subject={{ urlencode($product->product_name) }}&body={{ urlencode(route('product.detail', ['slug' => $product->slug, 'id' => $product->id])) }}">
+                                    <i class="fa fa-paper-plane me-1"></i> Email
+                                </a>
+                            </div>
                             <div class="d-flex mb-4">
                                 <i class="fa fa-star text-secondary"></i>
                                 <i class="fa fa-star text-secondary"></i>
@@ -282,7 +298,7 @@
                         <div class="text-white bg-primary px-3 py-1 rounded position-absolute"
                             style="top: 10px; right: 10px;">Vegetable</div>
                         <div class="p-4 pb-0 rounded-bottom">
-                            <h4><a href="/product/{{ $product->id }}" class="text-decoration-none text-dark">
+                            <h4><a href="{{ route('product.detail', ['slug' => $product->slug, 'id' => $product->id]) }}" class="text-decoration-none text-dark">
                                     {{ $product->product_name }}
                                 </a></h4>
                             <p>{{  $product->product_shortDesc }}</p>
