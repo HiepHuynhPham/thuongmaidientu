@@ -106,11 +106,19 @@
             fjs.parentNode.insertBefore(js, fjs);
         }(document, 'script', 'facebook-jssdk'));
     </script>
-    @php
-        $tawkProperty = env('TAWK_PROPERTY_ID', '69273ecc188b0a1960fc17dd');
-        $tawkWidget = env('TAWK_WIDGET_ID', '1jb0kqk2p');
-    @endphp
-    <script async src="https://embed.tawk.to/{{ $tawkProperty }}/{{ $tawkWidget }}" charset="UTF-8" crossorigin="*"></script>
+    <!--Start of Tawk.to Script-->
+    <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+      var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+      s1.async=true;
+      s1.src='https://embed.tawk.to/69273ecc188b0a1960fc17dd/1jb0kqk2p';
+      s1.charset='UTF-8';
+      s1.setAttribute('crossorigin','*');
+      s0.parentNode.insertBefore(s1,s0);
+    })();
+    </script>
+    <!--End of Tawk.to Script-->
     <a href="{{ env('MESSENGER_LINK', 'https://m.me/916138074910459') }}" target="_blank" style="position:fixed; bottom:100px; right:20px; background:#0084ff; color:white; padding:12px 15px; border-radius:8px; z-index:9999; text-decoration:none;">Chat Messenger</a>
     @if(env('ZALO_OA_ID'))
     <div class="zalo-chat-widget" data-oaid="{{ env('ZALO_OA_ID') }}" data-welcome-message="Xin chào! Tôi có thể giúp gì cho bạn?" data-autopopup="0" data-width="350" data-height="420"></div>
