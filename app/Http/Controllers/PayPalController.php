@@ -27,7 +27,7 @@ class PayPalController extends Controller
         $amount = (float) ($cartData['totalPrice'] ?? 0);
 
         if ($amount <= 0) {
-            return redirect()->route('cart.show')->with('error', 'Gi��? hA�ng c��a b���n �`ang tr��`ng ho���c khA'ng h���p l��� cho thanh toA�n.');
+            return redirect()->route('cart.show')->with('error', "Cart is empty or invalid for checkout.");
         }
 
         Session::put('paypal_amount', $amount);
