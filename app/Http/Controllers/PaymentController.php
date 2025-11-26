@@ -8,17 +8,21 @@ use Illuminate\Support\Facades\Log;
 use Srmklive\PayPal\Services\PayPal as PayPalClient;
 use App\Services\CartService;
 use App\Services\OrderService;
+use App\Services\VnPayService;
 
 class PaymentController extends Controller
 {
 	protected CartService $cartService;
 	protected OrderService $orderService;
 
-	public function __construct(CartService $cartService, OrderService $orderService)
-	{
-		$this->cartService = $cartService;
-		$this->orderService = $orderService;
-	}
+    protected VnPayService $vnPayService;
+
+    public function __construct(CartService $cartService, OrderService $orderService, VnPayService $vnPayService)
+    {
+        $this->cartService = $cartService;
+        $this->orderService = $orderService;
+        $this->vnPayService = $vnPayService;
+    }
 
 	/**
 	 * Server-side redirect flow: create PayPal order and redirect buyer to approval URL
@@ -259,15 +263,17 @@ class PaymentController extends Controller
 	/**
 	 * Capture PayPal order server-side (JS SDK completion).
 	 */
-	public function captureOrder(Request $request)
-	{
+    public function captureOrder(Request $request)
+    {
 		$orderId = $request->input('orderId') ?? $request->query('orderId');
 
 		if (!$orderId) {
 			return response()->json([
 				'message' => 'orderId is required',
 			], 422);
-		}
+    }
+
+    
 
 		$userId = Session::get('user_id');
 		if (!$userId) {
@@ -312,6 +318,69 @@ class PaymentController extends Controller
 
 		return response()->json($response);
 	}
+
+    public function createVnPayPayment(Request $request)
+    {
+        $userId = Session::get('user_id');
+        if (!$userId) {
+            return redirect()->route('login');
+        }
+        $cartData = $this->cartService->fetchCartByUser($userId);
+        $amount = (int) ($cartData['totalPrice'] ?? 0);
+        if ($amount <= 0) {
+            return redirect()->back()->with('error', 'Giỏ hàng trống hoặc không hợp lệ để thanh toán.');
+        }
+        $model = new \App\Models\VnPaymentRequestModel();
+        $model->amount = $amount;
+        $model->description = 'Thanh toán đơn hàng';
+        $model->fullName = 'Khách hàng';
+        $model->orderId = (string) (time());
+        $model->createdDate = new \DateTimeImmutable();
+        $url = $this->vnPayService->createPaymentUrl($request, $model);
+        return redirect()->away($url);
+    }
+
+    public function vnPayReturn(Request $request)
+    {
+        $res = $this->vnPayService->paymentExecute($request->query());
+        if (!$res || $res->vnp_ResponseCode !== '00' || !$res->success) {
+            return redirect()->route('cart.show')->with('error', 'Thanh toán VNPay thất bại.');
+        }
+        $userId = Session::get('user_id');
+        if (!$userId) {
+            return redirect()->route('login');
+        }
+        $cartData = $this->cartService->fetchCartByUser($userId);
+        $cartDetails = $cartData['cartDetails'];
+        $orderData = [
+            'receiverName' => '',
+            'receiverAddress' => '',
+            'receiverPhone' => '',
+            'totalPrice' => $cartData['totalPrice'] ?? 0,
+            'paymentMethod' => 'VNPAY',
+        ];
+        try {
+            $order = $this->orderService->placeOrder($userId, $orderData, $cartDetails);
+        } catch (\Throwable $e) {
+            return redirect()->route('cart.show')->with('error', 'Không tạo đơn hàng nội bộ sau khi thanh toán VNPay.');
+        }
+        $order->status = 'paid';
+        $order->pay = 1;
+        $order->paypal_order_id = $res->vnp_TxnRef;
+        $order->amount = $cartData['totalPrice'] ?? 0;
+        $order->currency = config('vnpay.currency', 'VND');
+        $order->save();
+        return redirect()->route('thank');
+    }
+
+    public function vnPayIpn(Request $request)
+    {
+        $res = $this->vnPayService->paymentExecute($request->query());
+        if ($res && $res->success && $res->vnp_ResponseCode === '00') {
+            return response()->json(['RspCode' => '00', 'Message' => 'Confirm Success']);
+        }
+        return response()->json(['RspCode' => '01', 'Message' => 'Confirm Failed'], 400);
+    }
 
 	protected function buildProvider(): PayPalClient
 	{
