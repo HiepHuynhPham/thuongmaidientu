@@ -64,13 +64,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 
-@if(isset($paypalClientId) && !empty($paypalClientId))
 <script>
-window.__PAYPAL_CLIENT_ID__="{{ $paypalClientId }}";
-window.__PAYPAL_CURRENCY__="{{ $paypalCurrency ?? 'USD' }}";
-window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
+window.__PAYPAL_CLIENT_ID__ = "{{ env('PAYPAL_CLIENT_ID') }}";
+window.__PAYPAL_CURRENCY__ = "{{ env('PAYPAL_CURRENCY', 'USD') }}";
+window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
 </script>
-@endif
 
 <body>
 
