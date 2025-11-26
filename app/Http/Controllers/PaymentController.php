@@ -127,10 +127,10 @@ class PaymentController extends Controller
 
 		try {
 			$order = $this->orderService->placeOrder($userId, $orderData, $cartDetails);
-		} catch (\Throwable $e) {
-			Log::error('Failed to create local order after PayPal capture', ['error' => $e->getMessage()]);
-			return redirect()->route('cart.show')->with('error', 'KhA'ng t���o �`��n hA�ng n���i b��� �`��� x��� lA� PayPal.');
-		}
+        } catch (\Throwable $e) {
+            Log::error('Failed to create local order after PayPal capture', ['error' => $e->getMessage()]);
+            return redirect()->route('cart.show')->with('error', "Failed to create local order after PayPal payment.");
+        }
 
 		$order->status = 'paid';
 		$order->pay = 1;
@@ -194,7 +194,7 @@ class PaymentController extends Controller
 			$order = $this->orderService->placeOrder($userId, $orderData, $cartDetails);
 		} catch (\Throwable $e) {
 			Log::error('Failed to create local order after PayPal client flow', ['error' => $e->getMessage()]);
-			return response()->json(['success' => false, 'message' => 'KhA'ng t���o �`��n hA�ng n���i b���.'], 422);
+			return response()->json(['success' => false, 'message' => 'Không tạo đơn hàng nội bộ.'], 422);
 		}
 		$order->status = 'paid';
 		$order->pay = 1;
@@ -299,7 +299,7 @@ class PaymentController extends Controller
 			$order = $this->orderService->placeOrder($userId, $orderData, $cartDetails);
 		} catch (\Throwable $e) {
 			Log::error('Failed to create local order after PayPal capture (JS flow)', ['error' => $e->getMessage()]);
-			return response()->json(['message' => 'KhA'ng t���o �`��n hA�ng n���i b���.'], 422);
+			return response()->json(['message' => 'Không tạo đơn hàng nội bộ sau khi thanh toán PayPal.'], 422);
 		}
 		$order->status = 'paid';
 		$order->pay = 1;
