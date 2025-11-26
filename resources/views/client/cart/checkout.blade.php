@@ -212,18 +212,16 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
                                     </div>
                                 </div>
 
-                                <div class="mt-3 d-flex justify-content-between">
-                                    <h5 class="mb-0 me-4">Hình thức</h5>
-                                    <select class="form-select" name="paymentMethod"
-                                        aria-label="Default select example" id="payment-method-select">
+                                <div class="mt-3 d-flex flex-column gap-2">
+                                    <h5 class="mb-0">Hình thức thanh toán</h5>
+                                    <select id="payment-method" name="paymentMethod" class="form-control">
                                         <option value="COD">Thanh toán khi nhận hàng (COD)</option>
-                                        <option value="VNPAY">Thanh toán qua VNPAY</option>
+                                        <option value="VNPAY">Thanh toán qua VNPay</option>
                                         <option value="PAYPAL">Thanh toán qua PayPal</option>
                                     </select>
                                 </div>
                             </div>
 
-                            <!-- Tổng Số Tiền -->
                             <div class="py-4 mb-4 border-top border-bottom d-flex justify-content-between">
                                 <h5 class="mb-0 ps-4 me-4">Tổng số tiền</h5>
                                 <p class="mb-0 pe-4" data-cart-total-price="{{ $totalPrice }}">
@@ -231,23 +229,22 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
                                 </p>
                             </div>
 
-                            <div class="mb-4">
-                                <form action="{{ route('vnpay.payment') }}" method="POST">
-                                    @csrf
-                                    <input type="hidden" name="amount" value="{{ $totalPrice }}">
-                                    <button type="submit" class="btn btn-primary w-100">
-                                        Thanh toán qua VNPay
-                                    </button>
-                                </form>
-                            </div>
-
-                            <!-- Xác Nhận Thanh Toán -->
-                            <div class="d-flex flex-column flex-sm-row gap-3 ms-4 mb-4">
-                                <button id="place-order-btn"
-                                    class="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase">
-                                    Xác nhận thanh toán
+                            <div class="d-flex flex-column gap-3 ms-4 mb-4">
+                                <button id="btn-vnpay"
+                                    class="btn btn-success w-100 mt-3"
+                                    style="display:none;"
+                                    type="button"
+                                    onclick="window.location.href='/payment/vnpay'">
+                                    Thanh toán qua VNPay
                                 </button>
-                                <div id="paypal-button-container" class="d-none" style="width:100%; min-height:48px;"></div>
+
+                                <button id="btn-cod" type="submit" class="btn btn-outline-warning mt-3">
+                                    XÁC NHẬN THANH TOÁN
+                                </button>
+
+                                <div id="paypal-container" class="mt-3" style="display:none;">
+                                    <div id="paypal-button-container" style="width:100%; min-height:48px;"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -285,78 +282,92 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
     <script src="{{ asset('js/main.js') }}"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-    const paymentSelect = document.getElementById('payment-method-select');
-    const submitBtn = document.getElementById('place-order-btn');
-    const paypalContainer = document.getElementById('paypal-button-container');
-    const checkoutForm = document.querySelector('form[action="/place-order"]');
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const paymentSelect = document.getElementById('payment-method');
+        const btnVnpay = document.getElementById('btn-vnpay');
+        const btnCod = document.getElementById('btn-cod');
+        const paypalBox = document.getElementById('paypal-container');
+        const paypalButtonContainer = document.getElementById('paypal-button-container');
+        const checkoutForm = document.querySelector('form[action="/place-order"]');
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-    if (!checkoutForm || !paymentSelect || !submitBtn || !paypalContainer) return;
-    
-    const totalPriceElement = checkoutForm.querySelector('[data-cart-total-price]');
-    if (!totalPriceElement) return;
-
-    const totalPriceVND = parseInt(totalPriceElement.dataset.cartTotalPrice.replace(/\D/g, ''));
-    let paypalRendered = false;
-
-    var paypalScriptEl=null, paypalLoadRequested=false;
-    function loadPayPalSDK(cb){
-        if (window.paypal){ cb(); return; }
-        if (paypalLoadRequested && paypalScriptEl){ paypalScriptEl.addEventListener('load', cb); return; }
-        paypalScriptEl=document.createElement('script');
-        paypalScriptEl.src='https://www.paypal.com/sdk/js?client-id='+window.__PAYPAL_CLIENT_ID__+'&currency='+window.__PAYPAL_CURRENCY__+'&locale='+window.__PAYPAL_LOCALE__+'&components=buttons';
-        paypalLoadRequested=true;
-        paypalScriptEl.onload=cb;
-        paypalScriptEl.onerror=function(){};
-        document.head.appendChild(paypalScriptEl);
-    }
-    function togglePaymentActions() {
-        if (!paymentSelect || !submitBtn || !paypalContainer) return;
-        if (paymentSelect.value === 'PAYPAL') {
-            submitBtn.disabled = true;
-            submitBtn.classList.add('disabled');
-            loadPayPalSDK(function(){
-                try {
-                    paypalContainer.classList.remove('d-none');
-                    if (!paypalRendered) { renderPayPalButton(); paypalRendered = true; }
-                } catch (e) {}
-            });
-        } else {
-            paypalContainer.classList.add('d-none');
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('disabled');
+        if (!checkoutForm || !paymentSelect || !btnVnpay || !btnCod || !paypalBox || !paypalButtonContainer || !csrfToken) {
+            return;
         }
-    }
 
-    paymentSelect.addEventListener('change', togglePaymentActions);
-    togglePaymentActions();
+        let paypalRendered = false;
+        let paypalScriptEl = null;
+        let paypalLoadRequested = false;
 
-    function renderPayPalButton() {
-        paypal.Buttons({
-            style: { layout: 'vertical', color: 'gold', shape: 'pill', tagline: false },
-            async createOrder() {
-                const response = await fetch("{{ url('/payment/create-paypal-order') }}", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
-                    body: JSON.stringify({})
+        function loadPayPalSDK(cb) {
+            if (window.paypal) {
+                cb();
+                return;
+            }
+            if (paypalLoadRequested && paypalScriptEl) {
+                paypalScriptEl.addEventListener('load', cb);
+                return;
+            }
+            paypalScriptEl = document.createElement('script');
+            paypalScriptEl.src = 'https://www.paypal.com/sdk/js?client-id=' + window.__PAYPAL_CLIENT_ID__ + '&currency=' + window.__PAYPAL_CURRENCY__ + '&locale=' + window.__PAYPAL_LOCALE__ + '&components=buttons';
+            paypalLoadRequested = true;
+            paypalScriptEl.onload = cb;
+            paypalScriptEl.onerror = function() {};
+            document.head.appendChild(paypalScriptEl);
+        }
+
+        function togglePaymentActions() {
+            btnVnpay.style.display = "none";
+            btnCod.style.display = "none";
+            paypalBox.style.display = "none";
+
+            if (paymentSelect.value === "VNPAY") {
+                btnVnpay.style.display = "block";
+            } else if (paymentSelect.value === "PAYPAL") {
+                paypalBox.style.display = "block";
+                loadPayPalSDK(function() {
+                    try {
+                        if (!paypalRendered) {
+                            renderPayPalButton();
+                            paypalRendered = true;
+                        }
+                    } catch (e) {}
                 });
-                const order = await response.json();
-                return order.id;
-            },
-            async onApprove(data) {
-                const response = await fetch(`{{ url('/payment/capture-paypal-order') }}?orderId=${data.orderID}`, { method: "POST", headers: { "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" } });
-                const details = await response.json();
-                window.location.href = "{{ route('paypal.success') }}";
-            },
-            onCancel() { window.location.assign("{{ route('paypal.cancel') }}"); },
-            onError() { alert('Có lỗi xảy ra với PayPal.'); }
-        }).render('#paypal-button-container');
-    }
+            } else {
+                btnCod.style.display = "block";
+            }
+        }
 
-    checkoutForm.addEventListener('submit', function(e){
-        if (paymentSelect.value === 'PAYPAL') { e.preventDefault(); }
+        paymentSelect.addEventListener('change', togglePaymentActions);
+        togglePaymentActions();
+
+        function renderPayPalButton() {
+            paypal.Buttons({
+                style: { layout: 'vertical', color: 'gold', shape: 'pill', tagline: false },
+                async createOrder() {
+                    const response = await fetch("{{ url('/payment/create-paypal-order') }}", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
+                        body: JSON.stringify({})
+                    });
+                    const order = await response.json();
+                    return order.id;
+                },
+                async onApprove(data) {
+                    const response = await fetch(`{{ url('/payment/capture-paypal-order') }}?orderId=${data.orderID}`, { method: "POST", headers: { "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" } });
+                    await response.json();
+                    window.location.href = "{{ route('paypal.success') }}";
+                },
+                onCancel() { window.location.assign("{{ route('paypal.cancel') }}"); },
+                onError() { alert('Có lỗi xảy ra với PayPal.'); }
+            }).render('#paypal-button-container');
+        }
+
+        checkoutForm.addEventListener('submit', function(e) {
+            if (paymentSelect.value === 'PAYPAL') {
+                e.preventDefault();
+            }
+        });
     });
-});
 
     </script>
 </body>
