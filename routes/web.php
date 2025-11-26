@@ -13,6 +13,7 @@ use App\Http\Controllers\GoogleController;
 use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\VNPayController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\NewsletterController;
@@ -184,6 +185,11 @@ Route::post('/payment/redirect-paypal', [PaymentController::class, 'redirectToPa
 Route::get('/payment/paypal-return', [PaymentController::class, 'handlePayPalReturn'])->name('payment.return');
 Route::get('/payment/paypal-cancel', [PaymentController::class, 'handlePayPalCancel'])->name('payment.cancel');
 Route::post('/payment/record-paypal', [PaymentController::class, 'recordPayPalTransaction'])->name('payment.record');
+
+// VNPay
+Route::post('/payment/vnpay', [VNPayController::class, 'createPayment'])->name('vnpay.payment');
+Route::get('/payment/vnpay/return', [VNPayController::class, 'paymentReturn'])->name('vnpay.return');
+Route::match(['GET', 'POST'], '/payment/vnpay/ipn', [VNPayController::class, 'ipnCallback'])->name('vnpay.ipn');
 
 //Migrate link (only for dev environment)
 Route::get('/run-migrate', function () {

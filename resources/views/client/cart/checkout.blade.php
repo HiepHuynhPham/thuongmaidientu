@@ -231,6 +231,16 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
                                 </p>
                             </div>
 
+                            <div class="mb-4">
+                                <form action="{{ route('vnpay.payment') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="amount" value="{{ $totalPrice }}">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        Thanh toán qua VNPay
+                                    </button>
+                                </form>
+                            </div>
+
                             <!-- Xác Nhận Thanh Toán -->
                             <div class="d-flex flex-column flex-sm-row gap-3 ms-4 mb-4">
                                 <button id="place-order-btn"
