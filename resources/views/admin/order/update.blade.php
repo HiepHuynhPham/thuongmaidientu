@@ -63,14 +63,12 @@
 
                             <div class="col-md-6">
                                 <label for="user_role" class="form-label">Role:</label>
-                                <select class="form-select" id="order_status" name="order_status">
-                                    <option value="pending" {{ $orders->order_status == 'pending' ? 'selected' : '' }}>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="pending" {{ $orders->status == 'pending' ? 'selected' : '' }}>
                                         PENDING</option>
-                                    <option value="shipping" {{ $orders->order_status == 3 ? 'shipping' : '' }}>SHIPPING
+                                    <option value="paid" {{ $orders->status == 'paid' ? 'selected' : '' }}>PAID
                                     </option>
-                                    <option value="complete" {{ $orders->order_status == 2 ? 'complete' : '' }}>COMPLETE
-                                    </option>
-                                    <option value="cancel" {{ $orders->order_status == 2 ? 'cancel' : '' }}>CANCEL
+                                    <option value="cancelled" {{ $orders->status == 'cancelled' ? 'selected' : '' }}>CANCELLED
                                     </option>
                                 </select>
                             </div>

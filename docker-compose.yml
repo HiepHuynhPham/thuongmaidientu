@@ -22,25 +22,26 @@ services:
             - ./storage/app/public/products:/var/www/storage/app/public/products
             - ./storage/app/public/avatars:/var/www/storage/app/public/avatars
         env_file:
-            - .env # Docker tự load biến môi trường từ .env
+            - .env
         depends_on:
             - mysql-db
         networks:
             - laravel
 
-
+    # Local-only MySQL helper (Render uses managed Postgres via render.yaml)
     mysql-db:
         image: mysql:5.7
         container_name: mysql-db
         restart: unless-stopped
         environment:
             MYSQL_DATABASE: fruitshop
-            MYSQL_ALLOW_EMPTY_PASSWORD: "yes" # Đảm bảo không sử dụng mật khẩu
+            MYSQL_USER: fruitshop
+            MYSQL_PASSWORD: fruitshop_password
+            MYSQL_ROOT_PASSWORD: root_password
         ports:
             - "3308:3306"
         volumes:
             - mysql_data:/var/lib/mysql
-            - ./initdb:/docker-entrypoint-initdb.d # ← THÊM DÒNG NÀY
         networks:
             - laravel
 

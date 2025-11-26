@@ -1,1 +1,9 @@
-node_modules\nvendor\npublic/storage
+node_modules
+vendor
+public/storage
+storage/logs
+storage/framework/cache
+storage/framework/sessions
+.env
+npm-debug.log
+Dockerfile

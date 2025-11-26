@@ -63,9 +63,6 @@
         const paypalContainer = document.getElementById('paypal-button-container');
         const paypalWrapper = document.getElementById('paypal-button-wrapper');
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const orderValue = paypalContainer.dataset.amount || '0.00';
-        const orderCurrency = paypalContainer.dataset.currency || 'USD';
-
         paypal.Buttons({
             style: {
                 layout: 'vertical',
@@ -81,19 +78,14 @@
                             "X-CSRF-TOKEN": csrfToken,
                             "Accept": "application/json",
                         },
-                        body: JSON.stringify({
-                            value: orderValue,
-                            currency_code: orderCurrency,
-                        }),
+                        body: JSON.stringify({}),
                     });
                     const order = await response.json();
                     if (!response.ok || !order.id) throw new Error(order.message || 'Không thể tạo đơn thanh toán PayPal.');
                     return order.id;
                 } catch (error) {
-                    console.warn('PayPal createOrder warning (fallback to client create):', error);
-                    return actions.order.create({
-                        purchase_units: [{ amount: { value: orderValue, currency_code: orderCurrency } }]
-                    });
+                    console.warn('PayPal createOrder failed:', error);
+                    throw error;
                 }
             },
             async onApprove(data, actions) {
@@ -110,10 +102,9 @@
                         window.location.href = "{{ route('paypal.success') }}";
                         return;
                     }
-                    const clientDetails = await actions.order.capture();
-                    window.location.href = "{{ route('paypal.success') }}";
+                    throw new Error('Capture failed');
                 } catch (error) {
-                    console.warn('PayPal onApprove warning (fallback to client capture):', error);
+                    console.warn('PayPal onApprove failed:', error);
                     alert('Có lỗi xảy ra với PayPal. Vui lòng thử lại.');
                 }
             },

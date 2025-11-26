@@ -68,33 +68,33 @@ class OrderController extends Controller
     }
 
     public function handleUpdateOrder(Request $request, $id){
-        $this->orderService->handleUpdateOrder($request['order_status'],$id);
-        return redirect('/admin/order')->with('success', 'Cập nhật trạng thái đơn hàng thành công!');
+        $this->orderService->handleUpdateOrder($request['status'],$id);
+        return redirect('/admin/order')->with('success', 'C��-p nh��-t tr���ng thA�i �`��n hA�ng thA�nh cA'ng!');
     }
 
 
-    // Xử lý đặt hàng
+    // X��- lA� �`���t hA�ng
     public function placeOrder(Request $request)
     {
-        // Lấy ID người dùng từ session
+        // L���y ID ng����?i dA1ng t��� session
         $userId = Session::get('user_id');
 
-        // Kiểm tra người dùng đăng nhập
+        // Ki���m tra ng����?i dA1ng �`��ng nh��-p
         if (!$userId) {
             return redirect()->route('login');
         }
 
-        // Dữ liệu từ form đặt hàng
+        // D��_ li���u t��� form �`���t hA�ng
         $data = $request->only(['receiverName', 'receiverAddress', 'receiverPhone', 'paymentMethod']);
         $cartData = $this->cartService->fetchCartByUser($userId);
 
-        // Gọi service để xử lý đặt hàng
+        // G��?i service �`��� x��- lA� �`���t hA�ng
         $order = $this->orderService->placeOrder($userId, array_merge($data, [
             'totalPrice' => $cartData['totalPrice'],
         ]), $cartData['cartDetails']);
 
         if ($order) {
-        // Thanh toán VNPAY
+        // Thanh toA�n VNPAY
         if ($data['paymentMethod'] === 'VNPAY') {
             $time = strval(time());
             $vnOrderId = 'VNPAY' . $time;
@@ -107,24 +107,24 @@ class OrderController extends Controller
                 'orderId' => $vnOrderId,
                 'orderInfo' => $vnOrderInfo,
                 'ipAddr' => $request->ip(),
-                // Gán mặc định NCB để test nhanh theo hướng dẫn
+                // GA�n m���c �`��<nh NCB �`��� test nhanh theo h����>ng d���n
                 'bankCode' => 'NCB',
             ]);
 
-            // Lưu thông tin để xử lý sau khi quay về từ VNPAY
+            // L��u thA'ng tin �`��� x��- lA� sau khi quay v��? t��� VNPAY
             Session::put('vnp_pending_order_id', $order->id);
             return redirect($paymentUrl);
         }
 
-        return redirect()->route('thank')->with('success', 'Đặt hàng thành công!');
+        return redirect()->route('thank')->with('success', '�?���t hA�ng thA�nh cA'ng!');
     } else {
-        return redirect()->back()->with('error', 'Đặt hàng thất bại. Vui lòng thử lại.');
+        return redirect()->back()->with('error', '�?���t hA�ng th���t b���i. Vui lA�ng th��- l���i.');
     }
     }
 
     public function thank(Request $request)
     {
-        // Kiểm tra trạng thái giao dịch từ request
+        // Ki���m tra tr���ng thA�i giao d��<ch t��� request
         $resultCode = $request->query('resultCode');
         if ($resultCode !== null && intval($resultCode) !== 0) {
             return view('client.cart.failure');
@@ -134,7 +134,7 @@ class OrderController extends Controller
             $vnPay = new \App\Services\VnPayService();
             $isValid = $vnPay->validateReturn($request->query());
             if (!$isValid) {
-                return view('client.cart.failure')->with('error', 'Không thể xác thực giao dịch VNPAY.');
+                return view('client.cart.failure')->with('error', 'KhA'ng th��� xA�c th���c giao d��<ch VNPAY.');
             }
 
             $respCode = $request->query('vnp_ResponseCode');
@@ -145,14 +145,14 @@ class OrderController extends Controller
                 if ($order) {
                     $order->update([
                         'pay' => 1,
-                        'order_status' => 'paid',
+                        'status' => 'paid',
                         'payment_method' => 'VNPAY',
                     ]);
                 }
                 return view('client.cart.thank');
             }
 
-            return view('client.cart.failure')->with('error', 'Thanh toán VNPAY thất bại hoặc đã hủy.');
+            return view('client.cart.failure')->with('error', 'Thanh toA�n VNPAY th���t b���i ho���c �`A� h��y.');
         }
 
         return view('client.cart.thank');

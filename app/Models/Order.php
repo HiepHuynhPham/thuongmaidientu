@@ -13,11 +13,18 @@ class Order extends Model
         'user_id',
         'address_id',
         'total_price',
-        'order_status',
+        'status',
         'receiver_phone',
         'receiver_address',
-        'receiver_name','payment_method',
-    'pay','paypal_order_id', 'status', 'payer_id', 'payer_email', 'amount', 'currency'];
+        'receiver_name',
+        'payment_method',
+        'pay',
+        'paypal_order_id',
+        'payer_id',
+        'payer_email',
+        'amount',
+        'currency',
+    ];
 
     public function user()
     {

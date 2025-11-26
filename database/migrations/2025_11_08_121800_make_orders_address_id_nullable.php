@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -10,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('orders') || !Schema::hasColumn('orders', 'address_id')) {
+            return;
+        }
+
         $driver = DB::connection()->getDriverName();
         if ($driver === 'pgsql') {
             DB::statement('ALTER TABLE orders ALTER COLUMN address_id TYPE CHAR(36)');
@@ -24,6 +29,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasTable('orders') || !Schema::hasColumn('orders', 'address_id')) {
+            return;
+        }
+
         $driver = DB::connection()->getDriverName();
         if ($driver === 'pgsql') {
             DB::statement('ALTER TABLE orders ALTER COLUMN address_id SET NOT NULL');

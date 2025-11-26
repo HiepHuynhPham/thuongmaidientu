@@ -47,26 +47,21 @@
                                     <td>{{ $order->receiver_address }}</td>
                                     <td>{{ $order->receiver_name }}</td>
                                     <td>
-                                        @if ($order->order_status === 'pending')
-                                        <span class="badge"
-                                            style="background: linear-gradient(45deg, #FFC107, #FFD54F); color: #000; font-weight: bold; padding: 5px 10px; border-radius: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
-                                            Pending
-                                        </span>
-                                        @elseif ($order->order_status === 'complete')
-                                        <span class="badge"
-                                            style="background: linear-gradient(45deg, #4CAF50, #81C784); color: #fff; font-weight: bold; padding: 5px 10px; border-radius: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
-                                            Complete
-                                        </span>
-                                        @elseif ($order->order_status === 'shipping')
-                                        <span class="badge"
-                                            style="background: linear-gradient(45deg, #2196F3, #64B5F6); color: #fff; font-weight: bold; padding: 5px 10px; border-radius: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
-                                            Shipping
-                                        </span>
-                                        @elseif ($order->order_status === 'cancel')
-                                        <span class="badge"
-                                            style="background: linear-gradient(45deg, #F44336, #E57373); color: #fff; font-weight: bold; padding: 5px 10px; border-radius: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
-                                            Cancel
-                                        </span>
+                                        @if ($order->status === 'pending')
+                                          <span class="badge"
+                                              style="background: linear-gradient(45deg, #FFC107, #FFD54F); color: #000; font-weight: bold; padding: 5px 10px; border-radius: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                                              Pending
+                                          </span>
+                                        @elseif ($order->status === 'paid')
+                                          <span class="badge"
+                                              style="background: linear-gradient(45deg, #4CAF50, #81C784); color: #fff; font-weight: bold; padding: 5px 10px; border-radius: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                                              Paid
+                                          </span>
+                                        @elseif ($order->status === 'cancelled')
+                                          <span class="badge"
+                                              style="background: linear-gradient(45deg, #F44336, #E57373); color: #fff; font-weight: bold; padding: 5px 10px; border-radius: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                                              Cancel
+                                          </span>
                                         @else
                                         <span class="badge"
                                             style="background: linear-gradient(45deg, #757575, #BDBDBD); color: #fff; font-weight: bold; padding: 5px 10px; border-radius: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">

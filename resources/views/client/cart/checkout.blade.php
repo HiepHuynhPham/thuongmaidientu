@@ -283,13 +283,12 @@ window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
     const checkoutForm = document.querySelector('form[action="/place-order"]');
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    if (!checkoutForm) return;
+    if (!checkoutForm || !paymentSelect || !submitBtn || !paypalContainer) return;
     
     const totalPriceElement = checkoutForm.querySelector('[data-cart-total-price]');
     if (!totalPriceElement) return;
 
     const totalPriceVND = parseInt(totalPriceElement.dataset.cartTotalPrice.replace(/\D/g, ''));
-    const totalPriceUSD = (totalPriceVND / 25000).toFixed(2);
     let paypalRendered = false;
 
     var paypalScriptEl=null, paypalLoadRequested=false;
@@ -304,12 +303,15 @@ window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
         document.head.appendChild(paypalScriptEl);
     }
     function togglePaymentActions() {
+        if (!paymentSelect || !submitBtn || !paypalContainer) return;
         if (paymentSelect.value === 'PAYPAL') {
             submitBtn.disabled = true;
             submitBtn.classList.add('disabled');
             loadPayPalSDK(function(){
-                paypalContainer.classList.remove('d-none');
-                if (!paypalRendered) { renderPayPalButton(); paypalRendered = true; }
+                try {
+                    paypalContainer.classList.remove('d-none');
+                    if (!paypalRendered) { renderPayPalButton(); paypalRendered = true; }
+                } catch (e) {}
             });
         } else {
             paypalContainer.classList.add('d-none');
@@ -328,7 +330,7 @@ window.__PAYPAL_LOCALE__="{{ $paypalLocale ?? 'en_US' }}";
                 const response = await fetch("{{ url('/payment/create-paypal-order') }}", {
                     method: "POST",
                     headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrfToken, "Accept": "application/json" },
-                    body: JSON.stringify({ value: totalPriceUSD, currency_code: "{{ $paypalCurrency ?? 'USD' }}" })
+                    body: JSON.stringify({})
                 });
                 const order = await response.json();
                 return order.id;

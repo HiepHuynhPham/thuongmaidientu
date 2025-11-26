@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('orders')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
-            // Thêm các cột thông tin người nhận và phương thức thanh toán nếu chưa có
             if (!Schema::hasColumn('orders', 'receiver_name')) {
                 $table->string('receiver_name', 100)->nullable();
             }
@@ -37,6 +40,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasTable('orders')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             if (Schema::hasColumn('orders', 'pay')) {
                 $table->dropColumn('pay');

@@ -174,11 +174,11 @@ Route::get('/paypal/checkout', [PayPalController::class, 'checkout'])->name('pay
 Route::get('/payment/PaymentSuccess', [PayPalController::class, 'successTransaction'])->name('paypal.success');
 Route::get('/paypal/cancel', [PayPalController::class, 'cancelTransaction'])->name('paypal.cancel');
 // PayPal Orders API endpoints used by JS SDK on checkout page
-Route::post('/paypal/orders/create', [PayPalController::class, 'createOrder'])->name('paypal.orders.create');
-Route::post('/paypal/orders/capture', [PayPalController::class, 'captureOrder'])->name('paypal.orders.capture');
+Route::post('/paypal/orders/create', [PaymentController::class, 'createOrder'])->name('paypal.orders.create');
+Route::post('/paypal/orders/capture', [PaymentController::class, 'captureOrder'])->name('paypal.orders.capture');
 // Aliases following the requested endpoint naming
-Route::post('/payment/create-paypal-order', [PayPalController::class, 'createOrder'])->name('payment.paypal.create');
-Route::post('/payment/capture-paypal-order', [PayPalController::class, 'captureOrder'])->name('payment.paypal.capture');
+Route::post('/payment/create-paypal-order', [PaymentController::class, 'createOrder'])->name('payment.paypal.create');
+Route::post('/payment/capture-paypal-order', [PaymentController::class, 'captureOrder'])->name('payment.paypal.capture');
 // Server-side redirect flow (create order and redirect buyer to PayPal)
 Route::post('/payment/redirect-paypal', [PaymentController::class, 'redirectToPayPal'])->name('payment.redirect');
 Route::get('/payment/paypal-return', [PaymentController::class, 'handlePayPalReturn'])->name('payment.return');

@@ -13,12 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
+        if (!Schema::hasTable('orders')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             if (!Schema::hasColumn('orders', 'paypal_order_id')) {
                 $table->string('paypal_order_id')->nullable();
             }
             if (!Schema::hasColumn('orders', 'status')) {
-                $table->string('status')->nullable();
+                $table->enum('status', ['pending', 'paid', 'cancelled'])->default('pending');
             }
             if (!Schema::hasColumn('orders', 'payer_id')) {
                 $table->string('payer_id')->nullable();
@@ -30,7 +34,7 @@ return new class extends Migration
                 $table->decimal('amount', 10, 2)->nullable();
             }
             if (!Schema::hasColumn('orders', 'currency')) {
-                $table->string('currency')->nullable();
+                $table->string('currency', 10)->nullable();
             }
         });
     }
@@ -42,6 +46,10 @@ return new class extends Migration
      */
     public function down()
     {
+        if (!Schema::hasTable('orders')) {
+            return;
+        }
+
         Schema::table('orders', function (Blueprint $table) {
             $cols = ['paypal_order_id', 'status', 'payer_id', 'payer_email', 'amount', 'currency'];
             foreach ($cols as $c) {
