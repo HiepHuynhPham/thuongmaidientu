@@ -78,7 +78,7 @@ class VnPayService
             'secureHash' => $vnpSecureHash,
             'tmn' => $vnpTmnCode,
         ]);
-        return $vnpUrl . '?' . $query . 'vnp_SecureHash=' . $vnpSecureHash;
+        return $vnpUrl . '?' . $query . 'vnp_SecureHashType=HMACSHA512&vnp_SecureHash=' . $vnpSecureHash;
     }
 
     private function cleanUnicode($str) { return $this->cleanAscii($str); }
