@@ -234,7 +234,7 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
                                     class="btn btn-success w-100 mt-3"
                                     style="display:none;"
                                     type="button"
-                                    onclick="window.location.href='/payment/vnpay'">
+                                    onclick="window.location.href='{{ route('payment.vnpay') }}'">
                                     Thanh toán qua VNPay
                                 </button>
 
