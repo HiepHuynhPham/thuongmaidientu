@@ -53,9 +53,6 @@ class VNPayController extends Controller
             "vnp_CreateDate" => date("YmdHis"),
         ];
 
-        if (!empty($vnpIpnUrl)) {
-            $inputData['vnp_IpnUrl'] = $vnpIpnUrl;
-        }
 
         ksort($inputData);
 

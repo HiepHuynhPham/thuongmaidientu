@@ -116,7 +116,7 @@ class OrderController extends Controller
         if ($resultCode !== null && intval($resultCode) !== 0) {
             return view('client.cart.failure');
         }
-        // Handle VNPAY return
+        // Handle VNPay return: only display status, do not update DB here
         if ($request->query('vnp_ResponseCode') !== null) {
             $vnPay = new \App\Services\VnPayService();
             $res = $vnPay->paymentExecute($request->query());
@@ -125,21 +125,7 @@ class OrderController extends Controller
             }
 
             $respCode = $request->query('vnp_ResponseCode');
-            $orderIdInternal = Session::pull('vnp_pending_order_id');
-
-            if ($respCode === '00' && $orderIdInternal) {
-                $order = Order::where('id', $orderIdInternal)->first();
-                if ($order) {
-                    $order->update([
-                        'pay' => 1,
-                        'status' => 'paid',
-                        'payment_method' => 'VNPAY',
-                    ]);
-                }
-                return view('client.cart.thank');
-            }
-
-            return view('client.cart.failure')->with('error', 'VNPay payment failed or cancelled.');
+            return $respCode === '00' ? view('client.cart.thank') : view('client.cart.failure')->with('error', 'VNPay payment failed or cancelled.');
         }
 
         return view('client.cart.thank');
