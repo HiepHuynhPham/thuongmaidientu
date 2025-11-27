@@ -33,7 +33,9 @@ class VNPayController extends Controller
                 $amount = (int) (Session::get('vnp_amount') ?? 0);
             }
         }
-        if ($amount <= 0) abort(400, 'Invalid amount');
+        if ($amount <= 0) {
+            return redirect()->route('checkout')->with('error', 'Invalid amount');
+        }
 
         $vnpTxnRef     = time(); 
         $vnpOrderInfo  = "Thanh toan don hang " . $vnpTxnRef;
