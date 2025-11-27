@@ -70,7 +70,7 @@ class OrderController extends Controller
 
     public function handleUpdateOrder(Request $request, $id){
         $this->orderService->handleUpdateOrder($request['status'],$id);
-        return redirect('/admin/order')->with('success', 'C��-p nh��-t tr���ng thA�i �`��n hA�ng thA�nh cA'ng!');
+        return redirect('/admin/order')->with('success', 'Updated order status successfully!');
     }
 
 
@@ -106,9 +106,9 @@ class OrderController extends Controller
         if ($order) {
         // Thanh toán COD hoặc các phương thức khác
 
-        return redirect()->route('thank')->with('success', '�?���t hA�ng thA�nh cA'ng!');
+        return redirect()->route('thank')->with('success', 'Order placed successfully!');
     } else {
-        return redirect()->back()->with('error', '�?���t hA�ng th���t b���i. Vui lA�ng th��- l���i.');
+        return redirect()->back()->with('error', 'Order placement failed. Please try again.');
     }
     }
 
@@ -124,7 +124,7 @@ class OrderController extends Controller
             $vnPay = new \App\Services\VnPayService();
             $isValid = $vnPay->validateReturn($request->query());
             if (!$isValid) {
-                return view('client.cart.failure')->with('error', 'KhA'ng th��� xA�c th���c giao d��<ch VNPAY.');
+                return view('client.cart.failure')->with('error', 'Unable to verify VNPay transaction.');
             }
 
             $respCode = $request->query('vnp_ResponseCode');
@@ -142,7 +142,7 @@ class OrderController extends Controller
                 return view('client.cart.thank');
             }
 
-            return view('client.cart.failure')->with('error', 'Thanh toA�n VNPAY th���t b���i ho���c �`A� h��y.');
+            return view('client.cart.failure')->with('error', 'VNPay payment failed or cancelled.');
         }
 
         return view('client.cart.thank');
