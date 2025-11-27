@@ -230,13 +230,12 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
                             </div>
 
                             <div class="d-flex flex-column gap-3 ms-4 mb-4">
-                                <button id="btn-vnpay"
-                                    class="btn btn-success w-100 mt-3"
-                                    style="display:none;"
-                                    type="button"
-                                    onclick="window.location.href='{{ route('payment.vnpay') }}'">
-                                    Thanh toán qua VNPay
-                                </button>
+                                <a id="btn-vnpay"
+                                   class="btn btn-success w-100 mt-3"
+                                   style="display:none;"
+                                   href="{{ route('payment.vnpay') }}">
+                                   Thanh toán qua VNPay
+                                </a>
 
                                 <button id="btn-cod" type="submit" class="btn btn-outline-warning mt-3">
                                     XÁC NHẬN THANH TOÁN
