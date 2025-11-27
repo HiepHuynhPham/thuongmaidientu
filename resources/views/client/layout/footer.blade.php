@@ -81,6 +81,7 @@
         </div>
     </div>
     <!-- Copyright End -->
+    @if(env('FACEBOOK_CHAT_ENABLED', true))
     <div id="fb-root"></div>
     <div id="fb-customer-chat" class="fb-customerchat"></div>
     <script>
@@ -106,6 +107,7 @@
             fjs.parentNode.insertBefore(js, fjs);
         }(document, 'script', 'facebook-jssdk'));
     </script>
+    @endif
     <!--Start of Tawk.to Script-->
     <script type="text/javascript">
     var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
