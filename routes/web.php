@@ -308,3 +308,6 @@ Route::get('/storage-link', function () {
         return '❌ Lỗi: ' . $e->getMessage();
     }
 });
+Route::get('/seo-demo', function () {
+    return view('seo');
+})->name('seo.demo');
