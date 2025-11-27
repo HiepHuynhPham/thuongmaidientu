@@ -39,7 +39,14 @@ class NewsletterController extends Controller
             ]);
 
         if ($response->failed()) {
-            return back()->with('error', 'Không thể đăng ký Mailchimp.');
+            $json = $response->json();
+            $title = is_array($json) ? ($json['title'] ?? null) : null;
+            $detail = is_array($json) ? ($json['detail'] ?? null) : null;
+            $statusCode = $response->status();
+            if ($title === 'Member Exists') {
+                return back()->with('success', 'Bạn đã đăng ký nhận tin trước đó.');
+            }
+            return back()->with('error', 'Không thể đăng ký Mailchimp: ' . ($detail ?? $title ?? ('HTTP ' . $statusCode)));
         }
 
         return back()->with('success', 'Đăng ký nhận tin thành công!');
