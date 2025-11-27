@@ -96,12 +96,16 @@ class VnPayService
 
         ksort($params);
 
-        // Build hashData chuẩn
+        $i = 0;
         $hashData = '';
         foreach ($params as $key => $value) {
-            $hashData .= $key . '=' . $value . '&';
+            if ($i == 1) {
+                $hashData .= '&' . urlencode($key) . '=' . urlencode($value);
+            } else {
+                $hashData .= urlencode($key) . '=' . urlencode($value);
+                $i = 1;
+            }
         }
-        $hashData = rtrim($hashData, '&');
 
         $calcHash = hash_hmac('sha512', $hashData, $vnpHashSecret);
 
