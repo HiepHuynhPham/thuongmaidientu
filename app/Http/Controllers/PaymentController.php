@@ -342,33 +342,9 @@ class PaymentController extends Controller
     public function vnPayReturn(Request $request)
     {
         $res = $this->vnPayService->paymentExecute($request->query());
-        if (!$res || $res->vnp_ResponseCode !== '00' || !$res->success) {
+        if (!$res || !$res->success || $res->vnp_ResponseCode !== '00') {
             return redirect()->route('cart.show')->with('error', 'Thanh toán VNPay thất bại.');
         }
-        $userId = Session::get('user_id');
-        if (!$userId) {
-            return redirect()->route('login');
-        }
-        $cartData = $this->cartService->fetchCartByUser($userId);
-        $cartDetails = $cartData['cartDetails'];
-        $orderData = [
-            'receiverName' => '',
-            'receiverAddress' => '',
-            'receiverPhone' => '',
-            'totalPrice' => $cartData['totalPrice'] ?? 0,
-            'paymentMethod' => 'VNPAY',
-        ];
-        try {
-            $order = $this->orderService->placeOrder($userId, $orderData, $cartDetails);
-        } catch (\Throwable $e) {
-            return redirect()->route('cart.show')->with('error', 'Không tạo đơn hàng nội bộ sau khi thanh toán VNPay.');
-        }
-        $order->status = 'paid';
-        $order->pay = 1;
-        $order->paypal_order_id = $res->vnp_TxnRef;
-        $order->amount = $cartData['totalPrice'] ?? 0;
-        $order->currency = config('vnpay.currency', 'VND');
-        $order->save();
         return redirect()->route('thank');
     }
 
@@ -378,7 +354,7 @@ class PaymentController extends Controller
         if ($res && $res->success && $res->vnp_ResponseCode === '00') {
             return response()->json(['RspCode' => '00', 'Message' => 'Confirm Success']);
         }
-        return response()->json(['RspCode' => '01', 'Message' => 'Confirm Failed'], 400);
+        return response()->json(['RspCode' => '97', 'Message' => 'Invalid Checksum'], 400);
     }
 
     protected function buildProvider(): PayPalClient

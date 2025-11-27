@@ -16,7 +16,8 @@ class VnPayService
         $vnpHashSecret = config('vnpay.hash_secret');
 
         // Không có IpnUrl trong URL gửi đi
-        $orderInfo = $this->toAscii($model->description ?? ('Thanh toan don hang ' . $model->orderId));
+        date_default_timezone_set('Asia/Ho_Chi_Minh');
+        $orderInfo = $this->cleanUnicode($model->description ?? ('Thanh toan don hang ' . $model->orderId));
         $expire = date('YmdHis', time() + 900);
 
         $params = [
@@ -35,35 +36,33 @@ class VnPayService
             'vnp_ExpireDate' => $expire,
         ];
 
-        // Sort tên tham số
+        // Sort và build hashData + query theo đúng encoding VNPay
         ksort($params);
-
-        // Build phần hashData đúng chuẩn
+        $i = 0;
         $hashData = '';
+        $query = '';
         foreach ($params as $key => $value) {
-            $hashData .= $key . '=' . $value . '&';
+            if ($i == 1) {
+                $hashData .= '&' . urlencode($key) . '=' . urlencode($value);
+            } else {
+                $hashData .= urlencode($key) . '=' . urlencode($value);
+                $i = 1;
+            }
+            $query .= urlencode($key) . '=' . urlencode($value) . '&';
         }
-        $hashData = rtrim($hashData, '&');
 
-        // Tạo secureHash chuẩn
         $vnpSecureHash = hash_hmac('sha512', $hashData, $vnpHashSecret);
-
-        // Build query cho URL redirect
-        $query = http_build_query($params);
-
-        return $vnpUrl . '?' . $query . '&vnp_SecureHash=' . $vnpSecureHash;
+        return $vnpUrl . '?' . $query . 'vnp_SecureHash=' . $vnpSecureHash;
     }
 
-    private function toAscii(string $text): string
+    private function cleanUnicode($str)
     {
-        $t = $text;
-        $t = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $t);
-        if ($t === false) {
-            $t = $text;
+        $converted = @iconv('UTF-8', 'ASCII//TRANSLIT', $str);
+        if ($converted === false || $converted === null) {
+            $converted = $str;
         }
-        $t = preg_replace('/[^A-Za-z0-9\s\-\.#]/', ' ', $t);
-        $t = preg_replace('/\s+/', ' ', $t);
-        return trim($t);
+        $converted = preg_replace('/[^A-Za-z0-9 ]/', '', $converted);
+        return preg_replace('/\s+/', ' ', trim($converted));
     }
 
 
