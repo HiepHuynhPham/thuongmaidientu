@@ -173,6 +173,7 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
             @if(!empty($cartDetails))
             <form action="/place-order" method="POST">
                 @csrf
+                <input type="hidden" name="amount" value="{{ $totalPrice }}">
                 <div class="mt-5 row g-4 justify-content-start">
                     <!-- Thông Tin Người Nhận -->
                     <div class="col-12 col-md-6">
