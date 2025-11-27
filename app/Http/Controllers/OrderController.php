@@ -89,13 +89,10 @@ class OrderController extends Controller
         $data = $request->only(['receiverName', 'receiverAddress', 'receiverPhone', 'paymentMethod']);
         $cartData = $this->cartService->fetchCartByUser($userId);
 
-        // Nếu chọn VNPay thì chuyển sang VNPayController và truyền amount
+        // Nếu chọn VNPay thì chuyển sang route VNPayController và kèm amount
         if (($data['paymentMethod'] ?? null) === 'VNPAY') {
             $amount = (int) ($cartData['totalPrice'] ?? 0);
-            if (!$request->has('amount')) {
-                $request->merge(['amount' => $amount]);
-            }
-            return app(VNPayController::class)->createPayment($request);
+            return redirect()->route('payment.vnpay', ['amount' => $amount]);
         }
 
         // Gọi service để xử lý đặt hàng
