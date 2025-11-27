@@ -16,6 +16,9 @@ class VnPayService
         $vnpHashSecret = config('vnpay.hash_secret');
 
         // Không có IpnUrl trong URL gửi đi
+        $orderInfo = $this->toAscii($model->description ?? ('Thanh toan don hang ' . $model->orderId));
+        $expire = date('YmdHis', time() + 900);
+
         $params = [
             'vnp_Version'    => config('vnpay.version'),
             'vnp_Command'    => 'pay',
@@ -23,12 +26,13 @@ class VnPayService
             'vnp_Amount'     => $model->amount * 100,
             'vnp_CurrCode'   => 'VND',
             'vnp_TxnRef'     => $model->orderId,
-            'vnp_OrderInfo'  => $model->description,
+            'vnp_OrderInfo'  => $orderInfo,
             'vnp_OrderType'  => 'other',
             'vnp_ReturnUrl'  => $vnpReturnUrl,
             'vnp_Locale'     => 'vn',
             'vnp_IpAddr'     => $request->ip(),
             'vnp_CreateDate' => $model->createdDate->format('YmdHis'),
+            'vnp_ExpireDate' => $expire,
         ];
 
         // Sort tên tham số
@@ -48,6 +52,18 @@ class VnPayService
         $query = http_build_query($params);
 
         return $vnpUrl . '?' . $query . '&vnp_SecureHash=' . $vnpSecureHash;
+    }
+
+    private function toAscii(string $text): string
+    {
+        $t = $text;
+        $t = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $t);
+        if ($t === false) {
+            $t = $text;
+        }
+        $t = preg_replace('/[^A-Za-z0-9\s\-\.#]/', ' ', $t);
+        $t = preg_replace('/\s+/', ' ', $t);
+        return trim($t);
     }
 
 
