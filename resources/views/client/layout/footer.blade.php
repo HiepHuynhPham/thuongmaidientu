@@ -81,7 +81,7 @@
         </div>
     </div>
     <!-- Copyright End -->
-    @if(env('FACEBOOK_CHAT_ENABLED', true))
+    @if(env('FACEBOOK_CHAT_ENABLED', true) && !request()->routeIs('checkout'))
     <div id="fb-root"></div>
     <div id="fb-customer-chat" class="fb-customerchat"></div>
     <script>
