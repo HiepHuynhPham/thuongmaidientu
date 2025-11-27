@@ -122,8 +122,8 @@ class OrderController extends Controller
         // Handle VNPAY return
         if ($request->query('vnp_ResponseCode') !== null) {
             $vnPay = new \App\Services\VnPayService();
-            $isValid = $vnPay->validateReturn($request->query());
-            if (!$isValid) {
+            $res = $vnPay->paymentExecute($request->query());
+            if (!$res || !$res->success) {
                 return view('client.cart.failure')->with('error', 'Unable to verify VNPay transaction.');
             }
 
