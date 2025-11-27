@@ -31,8 +31,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
     'mailchimp' => [
-        'key' => env('MAILCHIMP_KEY'),
+        'key' => env('MAILCHIMP_API_KEY', env('MAILCHIMP_KEY')),
         'audience' => env('MAILCHIMP_LIST_ID'),
+        'audience_id' => env('MAILCHIMP_AUDIENCE_ID'),
+        'server_prefix' => env('MAILCHIMP_SERVER_PREFIX'),
     ],
     'google' => [
         'client_id'     => env('GOOGLE_CLIENT_ID'),

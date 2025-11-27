@@ -18,11 +18,12 @@ class NewsletterController extends Controller
         ]);
 
         $apiKey = config('services.mailchimp.key');
-        $audienceId = config('services.mailchimp.audience');
-        $dataCenter = $apiKey && str_contains($apiKey, '-') ? Str::after($apiKey, '-') : null;
+        $audienceId = config('services.mailchimp.audience_id') ?: config('services.mailchimp.audience');
+        $serverPrefix = config('services.mailchimp.server_prefix');
+        $dataCenter = $serverPrefix ?: ($apiKey && str_contains($apiKey, '-') ? Str::after($apiKey, '-') : null);
 
         if (!$apiKey || !$audienceId || !$dataCenter) {
-            return back()->with('error', 'Mailchimp chưa được cấu hình (MAILCHIMP_KEY, MAILCHIMP_LIST_ID).');
+            return back()->with('error', 'Mailchimp chưa được cấu hình (API key, audience/list, server prefix).');
         }
 
         $payload = [
