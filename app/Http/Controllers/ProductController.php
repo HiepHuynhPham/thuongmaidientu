@@ -60,6 +60,16 @@ class ProductController extends Controller{
         return view('client.product.detail', compact('product','allproduct', 'reviews', 'productDiscounts' ));
     }
 
+    public function detailBySlug($slug)
+    {
+        $product = \App\Models\Product::where('slug', $slug)->firstOrFail();
+        $id = $product->id;
+        $reviews = $this->productService->getReviewWithIDProduct($id);
+        $allproduct = $this->productService->getAllProducts();
+        $productDiscounts = $this->discountService->getAllProductDiscountActive();
+        return view('client.product.detail', compact('product','allproduct', 'reviews', 'productDiscounts'));
+    }
+
 
     public function getProductShowPage(){
         $allproduct= $this->productService->getAllProductShowPage();

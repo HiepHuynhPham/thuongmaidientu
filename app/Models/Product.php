@@ -20,7 +20,8 @@ class Product extends Model
         'product_type',
         'product_quantity',
         'product_image_url',
-        'star'];
+        'star',
+        'slug'];
 
     public function discounts()
     {
@@ -42,8 +43,20 @@ class Product extends Model
         return $this->hasMany(CartDetail::class);
     }
 
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($product) {
+            $product->slug = $product->slug ?: Str::slug($product->product_name ?? '');
+        });
+        static::updating(function ($product) {
+            $product->slug = Str::slug($product->product_name ?? '');
+        });
+    }
+
     public function getSlugAttribute(): string
     {
-        return Str::slug($this->product_name ?? '');
+        $value = $this->attributes['slug'] ?? null;
+        return $value ?: Str::slug($this->product_name ?? '');
     }
 }

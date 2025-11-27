@@ -128,6 +128,8 @@ Route::get('/product/{id}', function ($id) {
 
 Route::get('/product', [ProductController::class, 'filterProducts'])->name('product');
 
+Route::get('/san-pham/{slug}', [ProductController::class, 'detailBySlug'])->name('product.slug');
+
 //Cart
 
 Route::get('/add-product-to-cart/{id}', function ($id) {
