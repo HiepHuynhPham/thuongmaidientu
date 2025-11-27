@@ -8,6 +8,7 @@ use App\Services\CartService;
 use App\Services\PaymentService;
 use App\Models\Order;
 use Illuminate\Support\Facades\Session;
+use App\Http\Controllers\VNPayController;
 
 class OrderController extends Controller
 {
@@ -84,37 +85,26 @@ class OrderController extends Controller
             return redirect()->route('login');
         }
 
-        // D��_ li���u t��� form �`���t hA�ng
+        // Dữ liệu từ form đặt hàng
         $data = $request->only(['receiverName', 'receiverAddress', 'receiverPhone', 'paymentMethod']);
         $cartData = $this->cartService->fetchCartByUser($userId);
 
-        // G��?i service �`��� x��- lA� �`���t hA�ng
+        // Nếu chọn VNPay thì chuyển sang VNPayController và truyền amount
+        if (($data['paymentMethod'] ?? null) === 'VNPAY') {
+            $amount = (int) ($cartData['totalPrice'] ?? 0);
+            if (!$request->has('amount')) {
+                $request->merge(['amount' => $amount]);
+            }
+            return app(VNPayController::class)->createPayment($request);
+        }
+
+        // Gọi service để xử lý đặt hàng
         $order = $this->orderService->placeOrder($userId, array_merge($data, [
             'totalPrice' => $cartData['totalPrice'],
         ]), $cartData['cartDetails']);
 
         if ($order) {
-        // Thanh toA�n VNPAY
-        if ($data['paymentMethod'] === 'VNPAY') {
-            $time = strval(time());
-            $vnOrderId = 'VNPAY' . $time;
-            $vnOrderInfo = 'Payment for order #' . $order->id;
-            $amount = (int) $cartData['totalPrice'];
-
-            $vnPay = new \App\Services\VnPayService();
-            $paymentUrl = $vnPay->generatePaymentUrl([
-                'amount' => $amount,
-                'orderId' => $vnOrderId,
-                'orderInfo' => $vnOrderInfo,
-                'ipAddr' => $request->ip(),
-                // GA�n m���c �`��<nh NCB �`��� test nhanh theo h����>ng d���n
-                'bankCode' => 'NCB',
-            ]);
-
-            // L��u thA'ng tin �`��� x��- lA� sau khi quay v��? t��� VNPAY
-            Session::put('vnp_pending_order_id', $order->id);
-            return redirect($paymentUrl);
-        }
+        // Thanh toán COD hoặc các phương thức khác
 
         return redirect()->route('thank')->with('success', '�?���t hA�ng thA�nh cA'ng!');
     } else {
