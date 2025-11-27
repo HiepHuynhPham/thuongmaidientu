@@ -51,20 +51,21 @@ class ProductController extends Controller{
         }
 
         if ($slug !== $product->slug) {
-            return redirect()->route('product.detail', ['slug' => $product->slug, 'id' => $product->id]);
+            return redirect()->route('product.detail', ['slug' => $product->slug]);
         }
 
-        $reviews = $this->productService->getReviewWithIDProduct($id);
-        $allproduct= $this->productService->getAllProducts();
-        $productDiscounts = $this->discountService->getAllProductDiscountActive();
-        return view('client.product.detail', compact('product','allproduct', 'reviews', 'productDiscounts' ));
+        return redirect()->route('product.detail', ['slug' => $product->slug]);
     }
 
     public function detailBySlug($slug)
     {
+        return $this->detail($slug);
+    }
+
+    public function detail($slug)
+    {
         $product = \App\Models\Product::where('slug', $slug)->firstOrFail();
-        $id = $product->id;
-        $reviews = $this->productService->getReviewWithIDProduct($id);
+        $reviews = $this->productService->getReviewWithIDProduct($product->id);
         $allproduct = $this->productService->getAllProducts();
         $productDiscounts = $this->discountService->getAllProductDiscountActive();
         return view('client.product.detail', compact('product','allproduct', 'reviews', 'productDiscounts'));
@@ -202,7 +203,7 @@ class ProductController extends Controller{
             // Chuyển hướng lại trang sản phẩm
             $product = $this->productService->getProductById($productId);
             $slug = $product ? $product->slug : $productId;
-            return redirect()->route('product.detail', ['slug' => $slug, 'id' => $productId])->with('success', 'Cảm ơn bạn đã đánh giá!');
+            return redirect()->route('product.detail', ['slug' => $slug])->with('success', 'Cảm ơn bạn đã đánh giá!');
         } catch (\Throwable $th) {
             return redirect('/login')->with('user', 'bạn cần đăng nhập!');
         }
@@ -215,14 +216,14 @@ class ProductController extends Controller{
             $slug = optional($this->productService->getProductById($productId))->slug ?? $productId;
 
             if(!$id){
-                return redirect()->route('product.detail', ['slug' => $slug, 'id' => $productId])->with('error', 'Không có id comment');
+                return redirect()->route('product.detail', ['slug' => $slug])->with('error', 'Không có id comment');
             }
 
             if(!$this->productService->handleDeleteComment($id)){
-                return redirect()->route('product.detail', ['slug' => $slug, 'id' => $productId])->with('error', 'Không có id comment');
+                return redirect()->route('product.detail', ['slug' => $slug])->with('error', 'Không có id comment');
             }
 
-            return redirect()->route('product.detail', ['slug' => $slug, 'id' => $productId])->with('success', 'xóa thành công');
+            return redirect()->route('product.detail', ['slug' => $slug])->with('success', 'xóa thành công');
         } catch (\Throwable $th) {
             return redirect('/')->with('error', 'Không có id comment');
         }

@@ -133,7 +133,7 @@
                             </th>
                             <td>
                                 <p class="mb-0 mt-4">
-                                    <a href="{{ route('product.detail', ['slug' => $orderDetail->product->slug, 'id' => $orderDetail->product->id]) }}" target="_blank">
+                                    <a href="{{ route('product.detail', ['slug' => $orderDetail->product->slug]) }}" target="_blank">
                                         {{ $orderDetail->product->product_name }}
                                     </a>
                                 </p>

@@ -115,7 +115,9 @@ Route::middleware(['auth', 'role:1'])->group(function () {
 
 //product
 
-Route::get('/product/{slug}-{id}', [ProductController::class, 'getProductDetailPage'])->whereNumber('id')->name('product.detail');
+Route::get('/san-pham/{slug}', [ProductController::class, 'detail'])->name('product.detail');
+
+Route::get('/product/{slug}-{id}', [ProductController::class, 'getProductDetailPage'])->whereNumber('id')->name('product.detail.legacy');
 
 Route::get('/product/{id}', function ($id) {
     $product = Product::find($id);
@@ -123,12 +125,10 @@ Route::get('/product/{id}', function ($id) {
         abort(404);
     }
 
-    return redirect()->route('product.detail', ['slug' => $product->slug, 'id' => $product->id]);
+    return redirect()->route('product.detail', ['slug' => $product->slug]);
 })->whereNumber('id');
 
 Route::get('/product', [ProductController::class, 'filterProducts'])->name('product');
-
-Route::get('/san-pham/{slug}', [ProductController::class, 'detailBySlug'])->name('product.slug');
 
 //Cart
 
@@ -138,7 +138,7 @@ Route::get('/add-product-to-cart/{id}', function ($id) {
         abort(404);
     }
 
-    return redirect()->route('product.detail', ['slug' => $product->slug, 'id' => $product->id])->with('error', 'Đường dẫn không hợp lệ, vui lòng dùng nút Thêm vào giỏ hàng.');
+    return redirect()->route('product.detail', ['slug' => $product->slug])->with('error', 'Đường dẫn không hợp lệ, vui lòng dùng nút Thêm vào giỏ hàng.');
 });
 Route::get('/cart', [CartController::class, 'getCartPage'])->name('cart.show');
 

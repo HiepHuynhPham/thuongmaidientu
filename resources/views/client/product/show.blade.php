@@ -320,7 +320,7 @@
                                         <div class="text-white bg-secondary px-3 py-1 rounded position-absolute"
                                             style="top: 10px; left: 10px;">Fruits</div>
                                         <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                            <h4><a href="{{ route('product.detail', ['slug' => $product->slug, 'id' => $product->id]) }}"
+                                            <h4><a href="{{ route('product.detail', ['slug' => $product->slug]) }}"
                                                 class="text-decoration-none text-dark">
                                                     {{ $product->product_name }}
                                                 </a></h4>

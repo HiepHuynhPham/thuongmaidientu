@@ -158,7 +158,7 @@
                                                 style="top: 10px; left: 10px;">Fruits</div>
                                             <div class="p-4 border border-secondary border-top-0 rounded-bottom">
                                                 <h4 style="font-size: 15px;">
-                                                    <a href="{{ route('product.detail', ['slug' => $product->slug, 'id' => $product->id]) }}"
+                                                    <a href="{{ route('product.detail', ['slug' => $product->slug]) }}"
                                                         class="text-decoration-none text-dark">
                                                         {{ $product->product_name }}
                                                     </a>

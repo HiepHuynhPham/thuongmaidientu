@@ -123,7 +123,7 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
                             </th>
                             <td>
                                 <p class="mb-0 mt-4">
-                                    <a href="{{ route('product.detail', ['slug' => $cartDetail->product->slug, 'id' => $cartDetail->product->id]) }}" target="_blank">
+                                    <a href="{{ route('product.detail', ['slug' => $cartDetail->product->slug]) }}" target="_blank">
                                         {{ $cartDetail->product->product_name }}
                                     </a>
                                 </p>

@@ -2,19 +2,29 @@
 <html lang="vi">
 
 <head>
+    @php
+        $imagePath = $product->product_image_url;
+        if (
+            !str_starts_with($imagePath, 'http://') &&
+            !str_starts_with($imagePath, 'https://') &&
+            !str_starts_with($imagePath, 'storage/')
+        ) {
+            $imagePath = 'storage/products/' . ltrim($imagePath, '/');
+        }
+    @endphp
     <meta charset="utf-8">
-    <title>{{ $product->product_name }} | Fruitables</title>
+    <title>{{ $product->product_name }}</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta name="description" content="{{ $product->product_shortDesc }}">
-    <meta name="keywords" content="trái cây tươi, {{ $product->product_name }}, mua trái cây online">
+    <meta name="keywords" content="{{ $product->product_name }}, trái cây sạch, fruitables">
     <meta property="og:type" content="product">
-    <meta property="og:title" content="{{ $product->product_name }} | Fruitables">
+    <meta property="og:title" content="{{ $product->product_name }}">
     <meta property="og:description" content="{{ $product->product_shortDesc }}">
-    <meta property="og:url" content="{{ route('product.detail', ['slug' => $product->slug, 'id' => $product->id]) }}">
-    <meta property="og:image" content="{{ asset('storage/products/' . $product->product_image_url) }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:image" content="{{ asset($imagePath) }}">
     <meta property="product:price:amount" content="{{ number_format($product->product_price, 0, '', '') }}">
     <meta property="product:price:currency" content="VND">
-    <link rel="canonical" href="{{ route('product.detail', ['slug' => $product->slug, 'id' => $product->id]) }}">
+    <link rel="canonical" href="{{ url()->current() }}">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -83,10 +93,10 @@
                             <p class="mb-3">{{ $product->product_shortDesc }}</p>
                             <h5 class="fw-bold mb-3">{{ number_format($product->product_price, 0, ',', '.') }} đ</h5>
                             <div class="mb-3">
-                                <a class="btn btn-outline-primary btn-sm me-2" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(route('product.detail', ['slug' => $product->slug, 'id' => $product->id])) }}">
-                                    <i class="fab fa-facebook-f me-1"></i> Chia sẻ
+                                <a class="btn btn-primary btn-sm me-2" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}">
+                                    <i class="fab fa-facebook-f me-1"></i> Chia sẻ Facebook
                                 </a>
-                                <a class="btn btn-outline-secondary btn-sm" href="mailto:?subject={{ urlencode($product->product_name) }}&body={{ urlencode(route('product.detail', ['slug' => $product->slug, 'id' => $product->id])) }}">
+                                <a class="btn btn-outline-secondary btn-sm" href="mailto:?subject={{ urlencode($product->product_name) }}&body={{ urlencode(url()->current()) }}">
                                     <i class="fa fa-paper-plane me-1"></i> Email
                                 </a>
                             </div>
@@ -298,7 +308,7 @@
                         <div class="text-white bg-primary px-3 py-1 rounded position-absolute"
                             style="top: 10px; right: 10px;">Vegetable</div>
                         <div class="p-4 pb-0 rounded-bottom">
-                            <h4><a href="{{ route('product.detail', ['slug' => $product->slug, 'id' => $product->id]) }}" class="text-decoration-none text-dark">
+                            <h4><a href="{{ route('product.detail', ['slug' => $product->slug]) }}" class="text-decoration-none text-dark">
                                     {{ $product->product_name }}
                                 </a></h4>
                             <p>{{  $product->product_shortDesc }}</p>
