@@ -26,24 +26,20 @@ class NewsletterController extends Controller
             return back()->with('error', 'Mailchimp chưa được cấu hình (API key, audience/list, server prefix).');
         }
 
-        $payload = [
-            'email_address' => $data['email'],
-            'status' => 'subscribed',
-            'merge_fields' => [
-                'FNAME' => $data['name'] ?? '',
-            ],
-        ];
+        $memberId = md5(strtolower($data['email']));
+        $url = "https://{$dataCenter}.api.mailchimp.com/3.0/lists/{$audienceId}/members/{$memberId}";
 
         $response = Http::withBasicAuth('anystring', $apiKey)
-            ->post("https://{$dataCenter}.api.mailchimp.com/3.0/lists/{$audienceId}/members", $payload);
+            ->put($url, [
+                'email_address' => $data['email'],
+                'status_if_new' => 'subscribed',
+                'merge_fields' => [
+                    'FNAME' => $data['name'] ?? '',
+                ],
+            ]);
 
         if ($response->failed()) {
-            $error = $response->json('title');
-            if ($error === 'Member Exists') {
-                return back()->with('success', 'Bạn đã đăng ký nhận tin trước đó.');
-            }
-
-            return back()->with('error', 'Không thể đăng ký Mailchimp: ' . ($error ?? 'Lỗi không xác định.'));
+            return back()->with('error', 'Không thể đăng ký Mailchimp.');
         }
 
         return back()->with('success', 'Đăng ký nhận tin thành công!');
