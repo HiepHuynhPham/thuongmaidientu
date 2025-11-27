@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\VnPaymentRequestModel;
 use App\Models\VnPaymentResponseModel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class VnPayService
 {
@@ -69,7 +70,14 @@ class VnPayService
             $query .= urlencode($key) . '=' . urlencode($value) . '&';
         }
 
-        $vnpSecureHash = hash_hmac('sha512', $hashData, $vnpHashSecret);
+        $vnpSecureHash = hash_hmac('sha512', $hashData, trim((string)$vnpHashSecret));
+        Log::info('VNPay create', [
+            'vnp_TxnRef' => $model->orderId,
+            'vnp_Amount' => $model->amount * 100,
+            'hashData' => $hashData,
+            'secureHash' => $vnpSecureHash,
+            'tmn' => $vnpTmnCode,
+        ]);
         return $vnpUrl . '?' . $query . 'vnp_SecureHash=' . $vnpSecureHash;
     }
 
@@ -78,7 +86,7 @@ class VnPayService
 
     public function paymentExecute($query): ?VnPaymentResponseModel
     {
-        $vnpHashSecret = config('vnpay.hash_secret');
+        $vnpHashSecret = trim((string) config('vnpay.hash_secret'));
 
         $params = [];
         foreach ($query as $key => $value) {
@@ -111,6 +119,14 @@ class VnPayService
 
         $valid = hash_equals($calcHash, $receivedHash);
 
+        Log::info('VNPay verify', [
+            'vnp_TxnRef' => $params['vnp_TxnRef'] ?? null,
+            'vnp_Amount' => $params['vnp_Amount'] ?? null,
+            'hashData' => $hashData,
+            'receivedHash' => $receivedHash,
+            'calculatedHash' => $calcHash,
+            'valid' => $valid,
+        ]);
         $res = new VnPaymentResponseModel();
         $res->success = $valid;
         $res->vnp_TxnRef = $params['vnp_TxnRef'] ?? null;
