@@ -117,6 +117,7 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
                                 <div class="d-flex align-items-center">
                                     <img loading="lazy"
                                         src="{{ asset('storage/products/' . $cartDetail->product->product_image_url) }}"
+                                        onerror="this.src='https://via.placeholder.com/80?text=No+Image'"
                                         class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px; overflow: hidden; display: flex;
                             justify-content: center; align-items: center; object-fit: cover;" alt="">
                                 </div>
@@ -265,13 +266,33 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
 
 
     <!-- JavaScript Libraries -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-toast-plugin/1.3.2/jquery.toast.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-toast-plugin/1.3.2/jquery.toast.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    @if(file_exists(public_path('lib/easing/easing.min.js')))
     <script src="{{ asset('lib/easing/easing.min.js') }}"></script>
+    @else
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+    @endif
+    @if(file_exists(public_path('lib/waypoints/waypoints.min.js')))
     <script src="{{ asset('lib/waypoints/waypoints.min.js') }}"></script>
+    @else
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+    @endif
+    @if(file_exists(public_path('lib/lightbox/js/lightbox.min.js')))
     <script src="{{ asset('lib/lightbox/js/lightbox.min.js') }}"></script>
+    @else
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+    @endif
+    @if(file_exists(public_path('lib/owlcarousel/owl.carousel.min.js')))
     <script src="{{ asset('lib/owlcarousel/owl.carousel.min.js') }}"></script>
+    @else
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/OwlCarousel2/2.3.4/owl.carousel.min.js"></script>
+    @endif
+    @if(file_exists(public_path('js/main.js')))
+    <script src="{{ asset('js/main.js') }}"></script>
+    @endif
 
     <!-- Template Javascript -->
     <script src="{{ asset('js/main.js') }}"></script>
