@@ -60,5 +60,22 @@ class VnPayService
         $res->message = $valid ? 'OK' : 'INVALID_CHECKSUM';
         return $res;
     }
-}
 
+    public function validateReturn($query): bool
+    {
+        $vnpHashSecret = config('vnpay.hash_secret');
+        $params = [];
+        foreach ($query as $k => $v) {
+            $params[$k] = is_array($v) ? (string) reset($v) : (string) $v;
+        }
+        $receivedHash = $params['vnp_SecureHash'] ?? '';
+        unset($params['vnp_SecureHash'], $params['vnp_SecureHashType']);
+        if (empty($params)) {
+            return false;
+        }
+        ksort($params);
+        $hashData = http_build_query($params);
+        $calcHash = hash_hmac('sha512', $hashData, $vnpHashSecret);
+        return hash_equals($calcHash, $receivedHash);
+    }
+}
