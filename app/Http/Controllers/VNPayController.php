@@ -7,129 +7,101 @@ use Illuminate\Support\Facades\Log;
 
 class VNPayController extends Controller
 {
-    /**
-     * Redirect user to VNPay payment page.
-     */
     public function createPayment(Request $request)
     {
-        $vnpUrl        = env('VNPAY_ENDPOINT', env('VNP_URL'));
-        $vnpReturnUrl  = env('VNPAY_RETURN_URL', env('VNP_RETURN_URL'));
-        $vnpIpnUrl     = env('VNPAY_IPN_URL', env('VNP_IPN_URL'));
-        $vnpTmnCode    = env('VNPAY_TMN_CODE', env('VNP_TMN_CODE'));
-        $vnpHashSecret = env('VNPAY_HASH_SECRET', env('VNP_HASH_SECRET'));
+        // CHỈ DÙNG BỘ ENV CHUẨN – KHÔNG DÙNG VNPAY_*
+        $vnpUrl        = env('VNP_URL');
+        $vnpReturnUrl  = env('VNP_RETURN_URL');
+        $vnpTmnCode    = env('VNP_TMN_CODE');
+        $vnpHashSecret = env('VNP_HASH_SECRET');
 
-        // amount is expected in VND, integer
+        // Amount
         $amount = (int) $request->input('amount', 0);
-        if ($amount <= 0) {
-            abort(400, 'Invalid amount for VNPay payment');
-        }
+        if ($amount <= 0) abort(400, 'Invalid amount');
 
-        $vnpTxnRef    = time(); // TODO: replace with the local order_id to link the gateway txn to your order
-        $vnpOrderInfo = 'Thanh toán đơn hàng #' . $vnpTxnRef;
-        $vnpOrderType = 'billpayment';
-        $vnpAmount    = $amount * 100; // VNPay amount = VND * 100
-        $vnpLocale    = 'vn';
-        $vnpIpAddr    = $request->ip();
+        $vnpTxnRef     = time();
+        $vnpOrderInfo  = "Thanh toán đơn hàng #" . $vnpTxnRef;
+        $vnpOrderType  = "billpayment";
+        $vnpAmount     = $amount * 100; // nhân đúng theo quy định
+        $vnpLocale     = "vn";
+        $vnpIpAddr     = $request->ip();
 
         $inputData = [
-            'vnp_Version'   => '2.1.0',
-            'vnp_Command'   => 'pay',
-            'vnp_TmnCode'   => $vnpTmnCode,
-            'vnp_Amount'    => $vnpAmount,
-            'vnp_CurrCode'  => 'VND',
-            'vnp_TxnRef'    => $vnpTxnRef,
-            'vnp_OrderInfo' => $vnpOrderInfo,
-            'vnp_OrderType' => $vnpOrderType,
-            'vnp_ReturnUrl' => $vnpReturnUrl,
-            'vnp_IpAddr'    => $vnpIpAddr,
-            'vnp_CreateDate'=> date('YmdHis'),
+            "vnp_Version"   => "2.1.0",
+            "vnp_Command"   => "pay",
+            "vnp_TmnCode"   => $vnpTmnCode,
+            "vnp_Amount"    => $vnpAmount,
+            "vnp_CurrCode"  => "VND",
+            "vnp_TxnRef"    => $vnpTxnRef,
+            "vnp_OrderInfo" => $vnpOrderInfo,
+            "vnp_OrderType" => $vnpOrderType,
+            "vnp_ReturnUrl" => $vnpReturnUrl,
+            "vnp_IpAddr"    => $vnpIpAddr,
+            "vnp_CreateDate"=> date('YmdHis'),
         ];
 
-        if ($vnpIpnUrl) {
-            $inputData['vnp_IpnUrl'] = $vnpIpnUrl;
-        }
+        // BẮT BUỘC: KHÔNG ĐƯỢC THÊM vnp_IpnUrl!!! VNPay không hỗ trợ
+        // IPN URL CHỈ ĐƯỢC CẤU HÌNH TRONG MERCHANT SYSTEM
 
         ksort($inputData);
 
-        $query    = '';
         $hashData = '';
+        $query = '';
 
         foreach ($inputData as $key => $value) {
-            $query    .= urlencode($key) . '=' . urlencode($value) . '&';
-            $hashData .= $key . '=' . $value . '&';
+            $hashData .= $key . "=" . $value . "&";
+            $query    .= urlencode($key) . "=" . urlencode($value) . "&";
         }
 
-        $query    = rtrim($query, '&');
-        $hashData = rtrim($hashData, '&');
+        $hashData = rtrim($hashData, "&");
+        $query    = rtrim($query, "&");
 
         $vnpSecureHash = hash_hmac('sha512', $hashData, $vnpHashSecret);
 
-        $paymentUrl = $vnpUrl . '?' . $query . '&vnp_SecureHash=' . $vnpSecureHash;
+        $paymentUrl = $vnpUrl . "?" . $query . "&vnp_SecureHash=" . $vnpSecureHash;
 
         return redirect()->away($paymentUrl);
     }
 
-    /**
-     * User browser is redirected back here after payment.
-     */
     public function paymentReturn(Request $request)
     {
-        $vnpResponseCode = $request->input('vnp_ResponseCode');
-
-        // TODO: optionally verify checksum again and update local order status by vnp_TxnRef
-        if ($vnpResponseCode === '00') {
-            return view('payments.success', [
-                'transaction' => $request->all(),
-            ]);
+        if ($request->vnp_ResponseCode == "00") {
+            return view("payments.success", ["transaction" => $request->all()]);
         }
-
-        return view('payments.fail', [
-            'transaction' => $request->all(),
-        ]);
+        return view("payments.fail", ["transaction" => $request->all()]);
     }
 
-    /**
-     * IPN callback from VNPay (server-to-server notification).
-     */
     public function ipnCallback(Request $request)
     {
-        $vnpHashSecret = env('VNPAY_HASH_SECRET', env('VNP_HASH_SECRET'));
+        $vnpHashSecret = env("VNP_HASH_SECRET");
 
         $inputData = $request->all();
 
-        if (!isset($inputData['vnp_SecureHash'])) {
-            return response()->json(['RspCode' => '97', 'Message' => 'Missing signature'], 400);
+        if (!isset($inputData["vnp_SecureHash"])) {
+            return response()->json(["RspCode" => "97", "Message" => "Missing signature"]);
         }
 
-        $vnpSecureHash = $inputData['vnp_SecureHash'];
-        unset($inputData['vnp_SecureHash'], $inputData['vnp_SecureHashType']);
+        $vnpSecureHash = $inputData["vnp_SecureHash"];
+        unset($inputData["vnp_SecureHash"], $inputData["vnp_SecureHashType"]);
 
         ksort($inputData);
 
-        $hashData = '';
+        $hashData = "";
         foreach ($inputData as $key => $value) {
-            $hashData .= $key . '=' . $value . '&';
+            $hashData .= $key . "=" . $value . "&";
         }
-        $hashData = rtrim($hashData, '&');
+        $hashData = rtrim($hashData, "&");
 
-        $secureHash = hash_hmac('sha512', $hashData, $vnpHashSecret);
+        $secureHash = hash_hmac("sha512", $hashData, $vnpHashSecret);
 
         if ($secureHash !== $vnpSecureHash) {
-            Log::warning('VNPay IPN checksum failed', $request->all());
-            return response()->json(['RspCode' => '97', 'Message' => 'Checksum failed'], 400);
+            return response()->json(["RspCode" => "97", "Message" => "Checksum failed"]);
         }
 
-        Log::info('VNPay IPN received', $request->all());
-
-        $responseCode = $request->input('vnp_ResponseCode');
-        $txnRef       = $request->input('vnp_TxnRef');
-
-        // TODO: update local order status by $txnRef based on $responseCode (00 = success)
-
-        if ($responseCode === '00') {
-            return response()->json(['RspCode' => '00', 'Message' => 'Success']);
+        if ($request->vnp_ResponseCode == "00") {
+            return response()->json(["RspCode" => "00", "Message" => "Success"]);
         }
 
-        return response()->json(['RspCode' => '01', 'Message' => 'Payment failed']);
+        return response()->json(["RspCode" => "01", "Message" => "Payment failed"]);
     }
 }
