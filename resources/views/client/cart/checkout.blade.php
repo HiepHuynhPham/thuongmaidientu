@@ -171,7 +171,7 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
             @endif
 
             @if(!empty($cartDetails))
-            <form action="/place-order" method="POST">
+            <form id="form-cod" action="/place-order" method="POST">
                 @csrf
                 <input type="hidden" name="amount" value="{{ $totalPrice }}">
                 <div class="mt-5 row g-4 justify-content-start">
@@ -231,13 +231,7 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
                             </div>
 
                             <div class="d-flex flex-column gap-3 ms-4 mb-4">
-                                <button id="btn-vnpay"
-                                        class="btn btn-success w-100 mt-3"
-                                        style="display:none;"
-                                        type="submit"
-                                        onclick="document.getElementById('payment-method').value='VNPAY'">
-                                    Thanh toán qua VNPay
-                                </button>
+                                <button id="btn-vnpay" class="btn btn-success w-100 mt-3" style="display:none;" type="button">Thanh toán qua VNPay</button>
 
                                 <button id="btn-cod" type="submit" class="btn btn-outline-warning mt-3">
                                     XÁC NHẬN THANH TOÁN
@@ -288,7 +282,7 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
         const btnCod = document.getElementById('btn-cod');
         const paypalBox = document.getElementById('paypal-container');
         const paypalButtonContainer = document.getElementById('paypal-button-container');
-        const checkoutForm = document.querySelector('form[action="/place-order"]');
+        const checkoutForm = document.getElementById('form-cod');
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
         if (!checkoutForm || !paymentSelect || !btnVnpay || !btnCod || !paypalBox || !paypalButtonContainer || !csrfToken) {
@@ -363,9 +357,17 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
             }).render('#paypal-button-container');
         }
 
+        btnVnpay.addEventListener('click', function() {
+            checkoutForm.setAttribute('action', "{{ route('payment.vnpay') }}");
+            checkoutForm.setAttribute('method', 'POST');
+            checkoutForm.submit();
+        });
+
         checkoutForm.addEventListener('submit', function(e) {
-            if (paymentSelect.value === 'PAYPAL') {
-                e.preventDefault();
+            if (paymentSelect.value === 'PAYPAL') e.preventDefault();
+            if (paymentSelect.value === 'COD') {
+                checkoutForm.setAttribute('action', '/place-order');
+                checkoutForm.setAttribute('method', 'POST');
             }
         });
     });

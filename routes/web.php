@@ -190,7 +190,8 @@ Route::get('/payment/paypal-cancel', [PaymentController::class, 'handlePayPalCan
 Route::post('/payment/record-paypal', [PaymentController::class, 'recordPayPalTransaction'])->name('payment.record');
 
 // VNPay (PaymentController)
-Route::get('/payment/vnpay', [PaymentController::class, 'createVnPayPayment'])->name('payment.vnpay');
+Route::match(['GET'], '/payment/vnpay', [PaymentController::class, 'createVnPayPayment'])->name('payment.vnpay');
+Route::post('/payment/vnpay', [PaymentController::class, 'createVnPayPayment']);
 Route::get('/payment/vnpay/return', [PaymentController::class, 'vnPayReturn'])->name('payment.vnpay.return');
 Route::match(['GET', 'POST'], '/payment/vnpay/ipn', [PaymentController::class, 'vnPayIpn'])->name('payment.vnpay.ipn');
 
