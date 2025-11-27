@@ -8,6 +8,24 @@ use Illuminate\Http\Request;
 
 class VnPayService
 {
+    private function cleanAscii(string $str): string
+    {
+        $converted = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $str);
+        if ($converted === false || $converted === null) {
+            $converted = $str;
+        }
+        return preg_replace('/[^A-Za-z0-9 ]/', '', $converted) ?? '';
+    }
+
+    private function getClientIp(Request $request): string
+    {
+        $xff = $request->server('HTTP_X_FORWARDED_FOR');
+        if ($xff) {
+            $parts = explode(',', $xff);
+            return trim($parts[0]);
+        }
+        return $request->ip() ?? '127.0.0.1';
+    }
     public function createPaymentUrl(Request $request, VnPaymentRequestModel $model): string
     {
         $vnpUrl        = config('vnpay.endpoint');
@@ -17,7 +35,7 @@ class VnPayService
 
         // Không có IpnUrl trong URL gửi đi
         date_default_timezone_set('Asia/Ho_Chi_Minh');
-        $orderInfo = $this->cleanUnicode($model->description ?? ('Thanh toan don hang ' . $model->orderId));
+        $orderInfo = $this->cleanAscii($model->description ?? ('Thanh toan don hang ' . $model->orderId));
         $expire = date('YmdHis', time() + 900);
 
         $params = [
@@ -31,7 +49,7 @@ class VnPayService
             'vnp_OrderType'  => 'other',
             'vnp_ReturnUrl'  => $vnpReturnUrl,
             'vnp_Locale'     => 'vn',
-            'vnp_IpAddr'     => $request->ip(),
+            'vnp_IpAddr'     => $this->getClientIp($request),
             'vnp_CreateDate' => $model->createdDate->format('YmdHis'),
             'vnp_ExpireDate' => $expire,
         ];
@@ -55,15 +73,7 @@ class VnPayService
         return $vnpUrl . '?' . $query . 'vnp_SecureHash=' . $vnpSecureHash;
     }
 
-    private function cleanUnicode($str)
-    {
-        $converted = @iconv('UTF-8', 'ASCII//TRANSLIT', $str);
-        if ($converted === false || $converted === null) {
-            $converted = $str;
-        }
-        $converted = preg_replace('/[^A-Za-z0-9 ]/', '', $converted);
-        return preg_replace('/\s+/', ' ', trim($converted));
-    }
+    private function cleanUnicode($str) { return $this->cleanAscii($str); }
 
 
     public function paymentExecute($query): ?VnPaymentResponseModel

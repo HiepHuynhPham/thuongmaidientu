@@ -331,8 +331,7 @@ class PaymentController extends Controller
         }
         $model = new \App\Models\VnPaymentRequestModel();
         $model->amount = $amount;
-        $model->description = 'Thanh toán đơn hàng';
-        $model->fullName = 'Khách hàng';
+        $model->description = 'Thanh toan don hang';
         $model->orderId = (string) (time());
         $model->createdDate = new \DateTimeImmutable();
         $url = $this->vnPayService->createPaymentUrl($request, $model);

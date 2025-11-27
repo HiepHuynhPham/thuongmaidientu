@@ -189,10 +189,10 @@ Route::get('/payment/paypal-return', [PaymentController::class, 'handlePayPalRet
 Route::get('/payment/paypal-cancel', [PaymentController::class, 'handlePayPalCancel'])->name('payment.cancel');
 Route::post('/payment/record-paypal', [PaymentController::class, 'recordPayPalTransaction'])->name('payment.record');
 
-// VNPay (VNPayController)
-Route::get('/payment/vnpay', [VNPayController::class, 'createPayment'])->name('payment.vnpay');
-Route::get('/payment/vnpay/return', [VNPayController::class, 'paymentReturn'])->name('payment.vnpay.return');
-Route::match(['GET', 'POST'], '/payment/vnpay/ipn', [VNPayController::class, 'ipnCallback'])->name('payment.vnpay.ipn');
+// VNPay (PaymentController)
+Route::get('/payment/vnpay', [PaymentController::class, 'createVnPayPayment'])->name('payment.vnpay');
+Route::get('/payment/vnpay/return', [PaymentController::class, 'vnPayReturn'])->name('payment.vnpay.return');
+Route::match(['GET', 'POST'], '/payment/vnpay/ipn', [PaymentController::class, 'vnPayIpn'])->name('payment.vnpay.ipn');
 
 //Migrate link (only for dev environment)
 Route::get('/run-migrate', function () {
