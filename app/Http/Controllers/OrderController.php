@@ -92,6 +92,7 @@ class OrderController extends Controller
         // Nếu chọn VNPay thì chuyển sang route VNPayController và kèm amount
         if (($data['paymentMethod'] ?? null) === 'VNPAY') {
             $amount = (int) ($cartData['totalPrice'] ?? 0);
+            \Illuminate\Support\Facades\Session::put('vnp_amount', $amount);
             return redirect()->route('payment.vnpay', ['amount' => $amount]);
         }
 

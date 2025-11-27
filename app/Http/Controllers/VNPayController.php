@@ -29,6 +29,9 @@ class VNPayController extends Controller
                     $amount = 0;
                 }
             }
+            if ($amount <= 0) {
+                $amount = (int) (Session::get('vnp_amount') ?? 0);
+            }
         }
         if ($amount <= 0) abort(400, 'Invalid amount');
 
