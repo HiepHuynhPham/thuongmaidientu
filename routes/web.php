@@ -14,6 +14,7 @@ use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\PayPalController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\VNPayController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\NewsletterController;
@@ -311,3 +312,13 @@ Route::get('/storage-link', function () {
 Route::get('/seo-demo', function () {
     return view('seo');
 })->name('seo.demo');
+
+Route::post('/maintenance/config-cache', function (Request $request) {
+    $token = $request->header('X-Maint-Token') ?? $request->input('token');
+    if ($token !== env('MAINT_TOKEN')) {
+        return response()->json(['ok' => false, 'error' => 'forbidden'], 403);
+    }
+    Artisan::call('config:clear');
+    Artisan::call('config:cache');
+    return response()->json(['ok' => true]);
+})->name('maintenance.config-cache');
