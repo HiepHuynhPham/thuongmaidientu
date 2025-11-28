@@ -62,6 +62,13 @@
         color: #007bff;
     }
     </style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-NGM4BBF5ZL"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} 
+    gtag('js', new Date());
+    gtag('config', 'G-NGM4BBF5ZL');
+    </script>
 </head>
 
 <body>

@@ -1,3 +1,4 @@
 User-agent: *
-Disallow:
-Sitemap: /sitemap.xml
+Allow: /
+
+Sitemap: https://thuongmaidientu-wxda.onrender.com/sitemap.xml
