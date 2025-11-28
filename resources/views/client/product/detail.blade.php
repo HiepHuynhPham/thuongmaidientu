@@ -91,7 +91,7 @@
                             <div class="border rounded">
                                 <a href="#">
                                     <img src="{{ asset('storage/products/' . $product->product_image_url) }}"
-                                        class="img-fluid rounded" alt="Image">
+                                        class="img-fluid rounded" alt="{{ $product->product_name }}">
                                 </a>
                             </div>
                         </div>

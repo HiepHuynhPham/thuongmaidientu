@@ -126,7 +126,7 @@ window.__PAYPAL_LOCALE__ = "{{ env('PAYPAL_LOCALE', 'en_US') }}";
                                         src="{{ asset('storage/products/' . $cartDetail->product->product_image_url) }}"
                                         onerror="this.src='https://via.placeholder.com/80?text=No+Image'"
                                         class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px; overflow: hidden; display: flex;
-                            justify-content: center; align-items: center; object-fit: cover;" alt="">
+                            justify-content: center; align-items: center; object-fit: cover;" alt="{{ $cartDetail->product->product_name }}">
                                 </div>
                             </th>
                             <td>

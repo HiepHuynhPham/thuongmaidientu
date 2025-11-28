@@ -72,7 +72,7 @@
                                 <li class="d-flex align-items-center flex-column" style="min-width: 300px;">
                                     <img loading="lazy" style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; display: flex;
                 justify-content: center; align-items: center; object-fit: cover;"
-                                        src="{{ asset('storage/avatars/' . auth()->user()->user_avatar) }}" />
+                                        src="{{ asset('storage/avatars/' . auth()->user()->user_avatar) }}" alt="{{ auth()->user()->user_name }}" />
                                     <div class="text-center my-3">
                                         {{ auth()->user()->user_name }}
                                     </div>
