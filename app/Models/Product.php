@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 class Product extends Model
 {
@@ -47,10 +48,14 @@ class Product extends Model
     {
         parent::boot();
         static::creating(function ($product) {
-            $product->slug = $product->slug ?: Str::slug($product->product_name ?? '');
+            if (Schema::hasColumn('products', 'slug')) {
+                $product->slug = $product->slug ?: Str::slug($product->product_name ?? '');
+            }
         });
         static::updating(function ($product) {
-            $product->slug = Str::slug($product->product_name ?? '');
+            if (Schema::hasColumn('products', 'slug')) {
+                $product->slug = Str::slug($product->product_name ?? '');
+            }
         });
     }
 
