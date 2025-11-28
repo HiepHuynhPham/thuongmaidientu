@@ -28,6 +28,11 @@
                     <div class="navbar-nav mx-auto">
                         <a href="/" class="nav-item nav-link active">Home</a>
                         <a href="/product" class="nav-item nav-link">Shop</a>
+                        @auth
+                            @if(auth()->user()->role_id == 1)
+                                <a href="/admin" class="nav-item nav-link">Trang quản trị</a>
+                            @endif
+                        @endauth
                     </div>
                     <div class="d-flex m-3 me-0">
                         @if(auth()->check())

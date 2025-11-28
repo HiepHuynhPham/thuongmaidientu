@@ -51,7 +51,7 @@ class User extends Authenticatable
     // Định nghĩa mối quan hệ với bảng roles
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class, 'role_id');
     }
 
     public function addresses()
