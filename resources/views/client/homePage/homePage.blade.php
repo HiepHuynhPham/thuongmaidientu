@@ -6,7 +6,8 @@
     <title>Fruitables - Vegetable Website Template</title>
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <meta content="" name="keywords">
-    <meta content="" name="description">
+    <meta name="description" content="Fruitables - Cửa hàng rau củ quả sạch, hữu cơ và trái cây tươi mỗi ngày. Giao hàng nhanh tại TP.HCM, giá tốt, nguồn gốc rõ ràng, chất lượng chuẩn VietGAP.">
+    <link rel="canonical" href="{{ url()->current() }}">
     <meta name="_csrf" content="{{ csrf_token() }}">
     <meta name="_csrf_header" content="X-CSRF-TOKEN">
 
