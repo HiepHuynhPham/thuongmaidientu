@@ -367,6 +367,9 @@ class PaymentController extends Controller
 
     protected function formatPaypalAmount(float $baseAmount): float
     {
-        return max(0, $baseAmount);
+        $rate = (float) (config('paypal.vnd_to_usd_rate') ?? 24000);
+        if ($rate <= 0) { $rate = 24000; }
+        $usd = $baseAmount / $rate;
+        return max(0, round($usd, 2));
     }
 }

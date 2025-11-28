@@ -19,9 +19,9 @@ return [
 
     'payment_action' => env('PAYPAL_PAYMENT_ACTION', 'Sale'),
     'currency'       => env('PAYPAL_CURRENCY', 'USD'),
+    'vnd_to_usd_rate' => env('PAYPAL_VND_TO_USD_RATE', 24000),
     'notify_url'     => env('PAYPAL_NOTIFY_URL', ''),
     'locale'         => env('PAYPAL_LOCALE', 'en_US'),
     'validate_ssl'   => env('PAYPAL_VALIDATE_SSL', true),
 ];
-
 
